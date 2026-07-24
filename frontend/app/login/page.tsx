@@ -8,15 +8,15 @@ import { Button, Input } from "@/components/ui";
 
 function Logo() {
   return (
-    <span className="inline-flex items-center gap-2.5">
-      <span className="inline-flex h-9 w-9 items-center justify-center">
-        <svg viewBox="0 0 40 40" className="h-9 w-9">
+    <span className="inline-flex items-center gap-3">
+      <span className="inline-flex h-10 w-10 items-center justify-center">
+        <svg viewBox="0 0 40 40" className="h-10 w-10">
           <path d="M20 2.5 34.5 11 v18 L20 37.5 5.5 29 V11 Z" fill="#2563eb" />
           <path d="M13.5 21.5 20 15 l6.5 6.5 M15.5 20v6.5a.6.6 0 0 0 .6.6h2.4v-3.4h2.9v3.4h2.5a.6.6 0 0 0 .6-.6V20"
             fill="none" stroke="#fff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </span>
-      <span className="text-2xl font-bold tracking-tight text-ink-900">BASE88</span>
+      <span className="text-[28px] font-bold tracking-tight text-ink-900">BASE88</span>
     </span>
   );
 }
@@ -56,42 +56,40 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
-      {/* Background photo (place the truck image at /public/login-bg.png) */}
+      {/* Background photo — shown at full vividness (no wash) */}
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: "url('/login-bg.png')", backgroundColor: "#cdd9e6" }}
       />
-      {/* Light wash to match the faded look and keep text/card readable */}
-      <div className="absolute inset-0 bg-gradient-to-r from-white/50 via-white/20 to-transparent" />
 
       {/* Bottom-left tagline */}
-      <div className="pointer-events-none absolute bottom-10 left-6 z-10 max-w-md sm:bottom-14 sm:left-14">
-        <h2 className="text-2xl font-bold leading-snug text-ink-900 sm:text-3xl" style={{ textShadow: "0 1px 12px rgba(255,255,255,0.5)" }}>
+      <div className="pointer-events-none absolute bottom-16 left-8 z-10 max-w-lg sm:bottom-24 sm:left-16">
+        <h2 className="text-[28px] font-bold leading-snug text-[#0f172a] sm:text-4xl">
           つなぐのは、信頼とビジネス
         </h2>
-        <p className="mt-2 text-sm font-medium text-ink-700">
+        <p className="mt-3 text-sm font-medium text-[#1e293b] sm:text-base">
           引越し業界の新しい協力のカタチを、BASE88から。
         </p>
       </div>
 
       {/* Login card */}
       <div className="relative z-20 flex min-h-screen items-center justify-center px-4 py-10 lg:justify-end lg:pr-[7vw]">
-        <div className="w-full max-w-md rounded-2xl border border-white/60 bg-white/95 p-8 shadow-2xl backdrop-blur-sm sm:p-10">
+        <div className="w-full max-w-[520px] rounded-2xl bg-white p-10 shadow-2xl sm:p-12">
           {/* Logo + subtitle */}
           <div className="flex flex-col items-center text-center">
             <Logo />
-            <p className="mt-3 text-sm text-ink-500">引越し案件共有プラットフォーム</p>
+            <p className="mt-4 text-[15px] text-ink-500">引越し案件共有プラットフォーム</p>
           </div>
 
-          <h1 className="mt-8 text-xl font-bold text-ink-900">ログイン</h1>
+          <h1 className="mt-10 text-2xl font-bold text-ink-900">ログイン</h1>
 
-          <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+          <form onSubmit={handleSubmit} className="mt-6 space-y-5">
             {error && (
               <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
             )}
 
             <label className="block">
-              <span className="mb-1.5 block text-sm font-medium text-ink-700">メールアドレス</span>
+              <span className="mb-2 block text-sm font-medium text-ink-700">メールアドレス</span>
               <Input
                 type="email"
                 autoComplete="email"
@@ -99,11 +97,12 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="メールアドレスを入力"
+                className="!py-3"
               />
             </label>
 
             <label className="block">
-              <span className="mb-1.5 block text-sm font-medium text-ink-700">パスワード</span>
+              <span className="mb-2 block text-sm font-medium text-ink-700">パスワード</span>
               <div className="relative">
                 <Input
                   type={show ? "text" : "password"}
@@ -112,7 +111,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="パスワードを入力"
-                  className="pr-10"
+                  className="!py-3 pr-10"
                 />
                 <button
                   type="button"
@@ -146,7 +145,7 @@ export default function LoginPage() {
               </span>
             </div>
 
-            <Button type="submit" loading={submitting} className="w-full">ログイン</Button>
+            <Button type="submit" loading={submitting} className="!py-3.5 w-full text-base">ログイン</Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-ink-500">
