@@ -59,7 +59,7 @@ export default function LoginPage() {
       {/* Background photo — shown at full vividness (no wash) */}
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/login-bg.png')", backgroundColor: "#cdd9e6" }}
+        style={{ backgroundImage: "url('/login-bg.jpg')", backgroundColor: "#cdd9e6" }}
       />
 
       {/* Bottom-left tagline */}
