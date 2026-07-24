@@ -1,26 +1,162 @@
 @import "tailwindcss";
 
+/*
+ * BASE88 デザインシステム
+ * B2B 引越マッチングにふさわしい、信頼感のある清潔なUI。
+ * ブランドカラー：ディープブルー、ステータスはセマンティックカラーで表現。
+ */
+@theme {
+  /* Brand (blue) */
+  --color-brand-50: #eef4ff;
+  --color-brand-100: #d9e6ff;
+  --color-brand-200: #bcd3ff;
+  --color-brand-300: #8eb6ff;
+  --color-brand-400: #598dff;
+  --color-brand-500: #3366f5;
+  --color-brand-600: #1f47e0;
+  --color-brand-700: #1a37bd;
+  --color-brand-800: #1b3098;
+  --color-brand-900: #1c2e78;
+  --color-brand-950: #151d49;
+
+  /* Neutral (slate) — surfaces & text */
+  --color-ink-50: #f8fafc;
+  --color-ink-100: #f1f5f9;
+  --color-ink-200: #e2e8f0;
+  --color-ink-300: #cbd5e1;
+  --color-ink-400: #94a3b8;
+  --color-ink-500: #64748b;
+  --color-ink-600: #475569;
+  --color-ink-700: #334155;
+  --color-ink-800: #1e293b;
+  --color-ink-900: #0f172a;
+
+  --font-sans: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic",
+    "YuGothic", "Meiryo", "Noto Sans JP", system-ui, -apple-system, sans-serif;
+
+  --radius-card: 0.875rem;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --page-bg: #f4f6fb;
+  --surface: #ffffff;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--page-bg);
+  color: var(--color-ink-800);
+  font-family: var(--font-sans);
+  font-feature-settings: "palt";
+  letter-spacing: 0.01em;
+}
+
+/* Subtle scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink-300) transparent;
+}
+
+/* Reusable component classes */
+@layer components {
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--color-ink-200);
+    border-radius: var(--radius-card);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+
+  .input-base {
+    width: 100%;
+    border-radius: 0.625rem;
+    border: 1px solid var(--color-ink-300);
+    background: #fff;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.925rem;
+    color: var(--color-ink-800);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .input-base::placeholder {
+    color: var(--color-ink-400);
+  }
+  .input-base:focus {
+    outline: none;
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 0 3px rgba(51, 102, 245, 0.15);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 0.625rem;
+    font-weight: 600;
+    font-size: 0.925rem;
+    padding: 0.6rem 1.1rem;
+    transition: background 0.15s, box-shadow 0.15s, opacity 0.15s, transform 0.05s;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn:active {
+    transform: translateY(1px);
+  }
+  .btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: var(--color-brand-600);
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(31, 71, 224, 0.25);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-brand-700);
+  }
+  .btn-secondary {
+    background: #fff;
+    color: var(--color-ink-700);
+    border: 1px solid var(--color-ink-300);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background: var(--color-ink-50);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-ink-600);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--color-ink-100);
+  }
+  .btn-danger {
+    background: #fff;
+    color: #be123c;
+    border: 1px solid #fecdd3;
+  }
+  .btn-danger:hover:not(:disabled) {
+    background: #fff1f2;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.25s ease-out both;
 }

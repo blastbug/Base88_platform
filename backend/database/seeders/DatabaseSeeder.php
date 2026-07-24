@@ -58,6 +58,8 @@ class DatabaseSeeder extends Seeder
                 ]
             );
             $companyAdmin->syncRoles([User::ROLE_COMPANY_ADMIN]);
+
+            $this->call(DemoSeeder::class);
         }
     }
 }
