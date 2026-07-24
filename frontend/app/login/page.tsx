@@ -63,11 +63,14 @@ export default function LoginPage() {
       />
 
       {/* Bottom-left tagline */}
-      <div className="pointer-events-none absolute bottom-16 left-8 z-10 max-w-lg sm:bottom-24 sm:left-16">
-        <h2 className="text-[28px] font-bold leading-snug text-[#0f172a] sm:text-4xl">
+      <div
+        className="pointer-events-none absolute bottom-16 left-8 z-10 max-w-lg sm:bottom-24 sm:left-16"
+        style={{ textShadow: "0 2px 10px rgba(15,23,42,0.45)" }}
+      >
+        <h2 className="text-[28px] font-bold leading-snug text-white sm:text-4xl">
           つなぐのは、信頼とビジネス
         </h2>
-        <p className="mt-3 text-sm font-medium text-[#1e293b] sm:text-base">
+        <p className="mt-3 text-sm font-medium text-white/90 sm:text-base">
           引越し業界の新しい協力のカタチを、BASE88から。
         </p>
       </div>
