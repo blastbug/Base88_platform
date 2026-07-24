@@ -56,10 +56,10 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
-      {/* Background photo (place the truck image at /public/login-bg.jpg) */}
+      {/* Background photo (place the truck image at /public/login-bg.png) */}
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/login-bg.jpg')", backgroundColor: "#cdd9e6" }}
+        style={{ backgroundImage: "url('/login-bg.png')", backgroundColor: "#cdd9e6" }}
       />
       {/* Light wash to match the faded look and keep text/card readable */}
       <div className="absolute inset-0 bg-gradient-to-r from-white/50 via-white/20 to-transparent" />
