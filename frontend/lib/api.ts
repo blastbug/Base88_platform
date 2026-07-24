@@ -1,11 +1,36 @@
 /**
  * BASE88 API クライアント
  * Laravel API（Sanctum トークン認証）と通信するための薄いラッパー。
- * ベースURLは NEXT_PUBLIC_API_URL（例: http://localhost:8000/api）で指定。
+ *
+ * API のベースURLは実行時に画面のURLから自動判定します：
+ *  - localhost / 127.0.0.1（任意のフロントポート） → 同ホストの :8000
+ *  - VS Code Dev Tunnel（例 xxxx-3000.<region>.devtunnels.ms）→ xxxx-8000.<region>.devtunnels.ms
+ *  - それ以外（本番等） → NEXT_PUBLIC_API_URL（設定時）または 同ホストの :8000
+ * これにより、ローカルでも Dev Tunnel 経由（別マシン）でも env の変更なしで動作します。
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api";
 const TOKEN_KEY = "base88_token";
+
+/** 実行時に API ベースURL（末尾 /api）を解決する */
+export function getApiBase(): string {
+  if (typeof window !== "undefined") {
+    const { protocol, hostname } = window.location;
+
+    // VS Code Dev Tunnel: "<id>-<port>.<region>.devtunnels.ms" のポート部を 8000 に差し替え
+    const tunnel = hostname.match(/^(.*-)\d+(\..+\.devtunnels\.ms)$/i);
+    if (tunnel) return `${protocol}//${tunnel[1]}8000${tunnel[2]}/api`;
+
+    // ローカル開発（フロントのポートに関わらず）→ バックエンドは :8000
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return `${protocol}//${hostname}:8000/api`;
+    }
+
+    // その他のホスト（本番等）: env 優先、無ければ同ホストの :8000
+    if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
+    return `${protocol}//${hostname}:8000/api`;
+  }
+  return process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
+}
 
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -57,7 +82,7 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
   }
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers, body });
+  const res = await fetch(`${getApiBase()}${path}`, { ...options, headers, body });
 
   const contentType = res.headers.get("content-type") ?? "";
   const payload = contentType.includes("application/json") ? await res.json() : await res.text();
