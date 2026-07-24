@@ -34,6 +34,12 @@ class JobController extends Controller
         if ($date = $request->query('date')) {
             $query->whereDate('moving_date', $date);
         }
+        if ($from = $request->query('date_from')) {
+            $query->whereDate('moving_date', '>=', $from);
+        }
+        if ($to = $request->query('date_to')) {
+            $query->whereDate('moving_date', '<=', $to);
+        }
         if ($status = $request->query('status')) {
             $query->where('status', $status);
         } else {
@@ -128,14 +134,37 @@ class JobController extends Controller
         return (new MovingJobResource($job))->response()->setStatusCode(201);
     }
 
-    /** 自社が掲載した案件一覧 */
+    /** 自社が掲載した案件一覧（?status で絞り込み） */
     public function myPosted(Request $request): JsonResponse
     {
         $user = $request->user();
-        $jobs = MovingJob::where('company_id', $user->company_id)
+        $query = MovingJob::where('company_id', $user->company_id)
             ->with('company')
             ->withCount('applications')
-            ->latest()
+            ->latest();
+
+        if ($status = $request->query('status')) {
+            $query->where('status', $status);
+        }
+
+        $jobs = $query->paginate(12);
+        $jobs->getCollection()->transform(function (MovingJob $job) {
+            $job->canViewCustomer = false;
+            return $job;
+        });
+
+        return MovingJobResource::collection($jobs)->response();
+    }
+
+    /** 自社が成約した（受注側）案件一覧 */
+    public function myContracts(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $jobIds = JobContract::where('winning_company_id', $user->company_id)->pluck('moving_job_id');
+
+        $jobs = MovingJob::whereIn('id', $jobIds)
+            ->with('company', 'contract')
+            ->latest('id')
             ->paginate(12);
 
         $jobs->getCollection()->transform(function (MovingJob $job) {

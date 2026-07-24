@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\ApplicationController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\JobController;
+use App\Http\Controllers\Api\MeController;
 use Illuminate\Support\Facades\Route;
 
 // 認証不要
@@ -31,4 +32,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // 自社関連
     Route::get('/my/jobs', [JobController::class, 'myPosted']);
     Route::get('/my/applications', [ApplicationController::class, 'myApplications']);
+    Route::get('/my/contracts', [JobController::class, 'myContracts']);
+
+    // マイページ（会社情報・担当者・パスワード）
+    Route::get('/me/company', [MeController::class, 'company']);
+    Route::put('/me/company', [MeController::class, 'updateCompany']);
+    Route::get('/me/staff', [MeController::class, 'staff']);
+    Route::put('/me/password', [MeController::class, 'updatePassword']);
 });

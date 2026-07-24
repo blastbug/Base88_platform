@@ -23,7 +23,7 @@ export const TIME_SLOTS = ["午前", "午後", "終日", "指定なし"];
 export const JOB_STATUS_LABEL: Record<JobStatus, string> = {
   recruiting: "募集中",
   closed: "募集終了",
-  contracted: "成約",
+  contracted: "成約済",
   completed: "完了",
   cancelled: "キャンセル",
 };
@@ -33,9 +33,18 @@ export const JOB_STATUS_TONE: Record<JobStatus, string> = {
   recruiting: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
   closed: "bg-ink-100 text-ink-600 ring-ink-500/20",
   contracted: "bg-brand-50 text-brand-700 ring-brand-600/20",
-  completed: "bg-teal-50 text-teal-700 ring-teal-600/20",
+  completed: "bg-ink-100 text-ink-600 ring-ink-500/20",
   cancelled: "bg-rose-50 text-rose-700 ring-rose-600/20",
 };
+
+/** 表示用ステータス。募集中でも締切超過なら「締切」（オレンジ）を返す。 */
+export function displayJobStatus(status: JobStatus, deadlineIso?: string | null): { label: string; tone: string } {
+  if (status === "recruiting" && deadlineIso) {
+    const past = new Date(deadlineIso).getTime() <= Date.now();
+    if (past) return { label: "締切", tone: "bg-amber-50 text-amber-700 ring-amber-600/20" };
+  }
+  return { label: JOB_STATUS_LABEL[status], tone: JOB_STATUS_TONE[status] };
+}
 
 export const APPLICATION_STATUS_LABEL: Record<ApplicationStatus, string> = {
   applied: "応募中",
@@ -44,7 +53,7 @@ export const APPLICATION_STATUS_LABEL: Record<ApplicationStatus, string> = {
 };
 
 export const APPLICATION_STATUS_TONE: Record<ApplicationStatus, string> = {
-  applied: "bg-amber-50 text-amber-700 ring-amber-600/20",
+  applied: "bg-brand-50 text-brand-700 ring-brand-600/20",
   accepted: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
   rejected: "bg-ink-100 text-ink-500 ring-ink-500/20",
 };
@@ -85,4 +94,17 @@ export function route(from: string, fromCity: string | null, to: string, toCity:
   const f = from + (fromCity ? " " + fromCity : "");
   const t = to + (toCity ? " " + toCity : "");
   return `${f} → ${t}`;
+}
+
+/** 「荷物量 / 間取り」列の表示（例: 2LDK / 2tトラック1台程度） */
+export function luggageLayout(layout: string | null, luggage: string): string {
+  return layout ? `${layout} / ${luggage}` : luggage;
+}
+
+/** 短い日付 M/D */
+export function shortDate(iso?: string | null): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "—";
+  return `${d.getMonth() + 1}/${d.getDate()}`;
 }

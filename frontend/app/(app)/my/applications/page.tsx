@@ -1,22 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import type { Application, Paginated } from "@/lib/types";
-import { Badge, EmptyState, LinkButton, PageHeader, Spinner } from "@/components/ui";
-import {
-  APPLICATION_STATUS_LABEL,
-  APPLICATION_STATUS_TONE,
-  JOB_STATUS_LABEL,
-  JOB_STATUS_TONE,
-  formatDate,
-  formatDateTime,
-  formatYen,
-  route,
-} from "@/lib/format";
+import { Badge, Button, EmptyState, SectionCard, Spinner, Tabs } from "@/components/ui";
+import { APPLICATION_STATUS_LABEL, APPLICATION_STATUS_TONE, formatDate, formatDateTime, route } from "@/lib/format";
+
+const TABS = [
+  { key: "applied", label: "応募中" },
+  { key: "accepted", label: "成約済み" },
+  { key: "rejected", label: "不成立" },
+];
 
 export default function MyApplicationsPage() {
+  const router = useRouter();
+  const [tab, setTab] = useState("applied");
   const [apps, setApps] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -26,45 +25,59 @@ export default function MyApplicationsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  return (
-    <div className="animate-fade-in">
-      <PageHeader title="応募履歴" description="自社が応募した案件の状況を確認できます。成約した案件は詳細から顧客情報を確認できます。" />
+  const filtered = useMemo(() => apps.filter((a) => a.status === tab), [apps, tab]);
+  const counts = useMemo(() => ({
+    applied: apps.filter((a) => a.status === "applied").length,
+    accepted: apps.filter((a) => a.status === "accepted").length,
+    rejected: apps.filter((a) => a.status === "rejected").length,
+  }), [apps]);
 
-      {loading ? (
-        <div className="flex justify-center py-16 text-brand-600"><Spinner className="h-7 w-7" /></div>
-      ) : apps.length === 0 ? (
-        <EmptyState title="応募履歴はまだありません" description="案件を探して応募してみましょう。" action={<LinkButton href="/jobs">案件を探す</LinkButton>} />
-      ) : (
-        <div className="card divide-y divide-ink-100">
-          {apps.map((app) => {
-            const job = app.job;
-            if (!job) return null;
-            return (
-              <Link key={app.id} href={`/jobs/${job.id}`} className="flex flex-wrap items-center gap-4 p-5 transition-colors hover:bg-ink-50">
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge tone={APPLICATION_STATUS_TONE[app.status]}>{APPLICATION_STATUS_LABEL[app.status]}</Badge>
-                    <Badge tone={JOB_STATUS_TONE[job.status]}>{JOB_STATUS_LABEL[job.status]}</Badge>
-                    {app.status === "accepted" && (
-                      <span className="text-xs font-semibold text-emerald-600">▶ 顧客情報を確認できます</span>
-                    )}
-                  </div>
-                  <div className="mt-1.5 truncate font-semibold text-ink-900">
-                    {route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}
-                  </div>
-                  <div className="mt-0.5 text-xs text-ink-500">
-                    引越日 {formatDate(job.moving_date)} ・ 掲載 {job.company?.name ?? "—"} ・ 応募日 {formatDateTime(app.created_at)}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-ink-900">{formatYen(job.desired_price)}</div>
-                  <div className="text-[11px] text-ink-400">希望金額</div>
-                </div>
-              </Link>
-            );
-          })}
+  return (
+    <div className="animate-fade-in space-y-5">
+      <SectionCard>
+        <div className="px-4 pt-2">
+          <Tabs tabs={TABS.map((t) => ({ ...t, count: counts[t.key as keyof typeof counts] }))} active={tab} onChange={setTab} />
         </div>
-      )}
+
+        {loading ? (
+          <div className="flex justify-center py-16 text-brand-600"><Spinner className="h-7 w-7" /></div>
+        ) : filtered.length === 0 ? (
+          <EmptyState title="該当する応募はありません" description="「案件一覧」から気になる案件に応募できます。" action={<Button variant="secondary" onClick={() => router.push("/jobs")}>案件を探す</Button>} />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="dtable">
+              <thead>
+                <tr>
+                  <th>出発地 → 到着地</th>
+                  <th>応募日時</th>
+                  <th>ステータス</th>
+                  <th>結果</th>
+                  <th className="text-right">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((app) => {
+                  const job = app.job;
+                  if (!job) return null;
+                  return (
+                    <tr key={app.id}>
+                      <td className="font-medium text-ink-800">{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</td>
+                      <td className="whitespace-nowrap text-ink-600">{formatDateTime(app.created_at)}</td>
+                      <td><Badge tone={APPLICATION_STATUS_TONE[app.status]}>{APPLICATION_STATUS_LABEL[app.status]}</Badge></td>
+                      <td className="whitespace-nowrap text-ink-600">
+                        {app.status === "accepted" ? `成約（${formatDate(job.moving_date)}）` : app.status === "rejected" ? "他社に成約" : "選定待ち"}
+                      </td>
+                      <td className="text-right">
+                        <Button size="sm" variant="secondary" onClick={() => router.push(`/jobs/${job.id}`)}>詳細</Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </SectionCard>
     </div>
   );
 }

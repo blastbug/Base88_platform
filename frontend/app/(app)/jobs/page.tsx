@@ -1,96 +1,142 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import type { Job, Paginated } from "@/lib/types";
-import { JobCard } from "@/components/JobCard";
-import { Button, EmptyState, Field, PageHeader, Select, Spinner } from "@/components/ui";
-import { JOB_STATUS_LABEL, PREFECTURES } from "@/lib/format";
+import { Badge, Button, EmptyState, Pagination, SectionCard, Select, Spinner } from "@/components/ui";
+import { JOB_STATUS_LABEL, PREFECTURES, displayJobStatus, formatDate, formatYen, luggageLayout, route, shortDate } from "@/lib/format";
 
 export default function JobsPage() {
+  const router = useRouter();
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [page, setPage] = useState(1);
+  const [lastPage, setLastPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const [prefecture, setPrefecture] = useState("");
-  const [date, setDate] = useState("");
-  const [status, setStatus] = useState("recruiting");
+  // applied filters
+  const [filters, setFilters] = useState({ prefecture: "", dateFrom: "", dateTo: "", status: "recruiting" });
+  // draft (form) filters
+  const [draft, setDraft] = useState(filters);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (p: number, f: typeof filters) => {
     setLoading(true);
     const params = new URLSearchParams();
-    if (prefecture) params.set("prefecture", prefecture);
-    if (date) params.set("date", date);
-    if (status) params.set("status", status);
+    if (f.prefecture) params.set("prefecture", f.prefecture);
+    if (f.dateFrom) params.set("date_from", f.dateFrom);
+    if (f.dateTo) params.set("date_to", f.dateTo);
+    if (f.status) params.set("status", f.status);
+    params.set("page", String(p));
     try {
       const res = await api<Paginated<Job>>(`/jobs?${params.toString()}`);
       setJobs(res.data);
+      setLastPage(res.meta?.last_page ?? 1);
       setTotal(res.meta?.total ?? res.data.length);
     } finally {
       setLoading(false);
     }
-  }, [prefecture, date, status]);
+  }, []);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    load(page, filters);
+  }, [load, page, filters]);
 
+  function search() {
+    setFilters(draft);
+    setPage(1);
+  }
   function reset() {
-    setPrefecture("");
-    setDate("");
-    setStatus("recruiting");
+    const cleared = { prefecture: "", dateFrom: "", dateTo: "", status: "recruiting" };
+    setDraft(cleared);
+    setFilters(cleared);
+    setPage(1);
   }
 
   return (
-    <div className="animate-fade-in">
-      <PageHeader title="案件を探す" description="条件を指定して、対応可能な引越案件を検索できます。" />
-
-      {/* Search filters */}
-      <div className="card mb-6 p-5">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Field label="出発地（都道府県）">
-            <Select value={prefecture} onChange={(e) => setPrefecture(e.target.value)}>
+    <div className="animate-fade-in space-y-5">
+      {/* Filter bar */}
+      <div className="card p-4">
+        <div className="grid gap-3 lg:grid-cols-[1fr_1.4fr_1fr_auto] lg:items-end">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-ink-500">都道府県</span>
+            <Select value={draft.prefecture} onChange={(e) => setDraft({ ...draft, prefecture: e.target.value })}>
               <option value="">すべて</option>
-              {PREFECTURES.map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
+              {PREFECTURES.map((p) => <option key={p} value={p}>{p}</option>)}
             </Select>
-          </Field>
-          <Field label="引越日">
-            <input type="date" className="input-base" value={date} onChange={(e) => setDate(e.target.value)} />
-          </Field>
-          <Field label="募集状況">
-            <Select value={status} onChange={(e) => setStatus(e.target.value)}>
-              <option value="recruiting">{JOB_STATUS_LABEL.recruiting}</option>
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-ink-500">引越予定日</span>
+            <div className="flex items-center gap-2">
+              <input type="date" className="input-base" value={draft.dateFrom} onChange={(e) => setDraft({ ...draft, dateFrom: e.target.value })} />
+              <span className="text-ink-400">〜</span>
+              <input type="date" className="input-base" value={draft.dateTo} onChange={(e) => setDraft({ ...draft, dateTo: e.target.value })} />
+            </div>
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-ink-500">募集状況</span>
+            <Select value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value })}>
               <option value="">すべて</option>
+              <option value="recruiting">{JOB_STATUS_LABEL.recruiting}</option>
               <option value="contracted">{JOB_STATUS_LABEL.contracted}</option>
               <option value="completed">{JOB_STATUS_LABEL.completed}</option>
             </Select>
-          </Field>
-          <div className="flex items-end gap-2">
-            <Button variant="secondary" onClick={reset} className="flex-1">
-              条件をクリア
-            </Button>
+          </label>
+          <div className="flex gap-2">
+            <Button onClick={search}>検索</Button>
+            <Button variant="secondary" onClick={reset}>リセット</Button>
           </div>
         </div>
       </div>
 
-      <div className="mb-4 text-sm text-ink-500">
-        {loading ? "検索中…" : `${total} 件の案件`}
-      </div>
+      {/* Table */}
+      <SectionCard>
+        {loading ? (
+          <div className="flex justify-center py-16 text-brand-600"><Spinner className="h-7 w-7" /></div>
+        ) : jobs.length === 0 ? (
+          <EmptyState title="該当する案件がありません" description="検索条件を変更してお試しください。" />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="dtable">
+              <thead>
+                <tr>
+                  <th>引越予定日</th>
+                  <th>出発地 → 到着地</th>
+                  <th>荷物量 / 間取り</th>
+                  <th>希望金額</th>
+                  <th>募集状況</th>
+                  <th>締切日</th>
+                  <th className="text-right">詳細</th>
+                </tr>
+              </thead>
+              <tbody>
+                {jobs.map((job) => {
+                  const st = displayJobStatus(job.status, job.application_deadline);
+                  return (
+                    <tr key={job.id}>
+                      <td className="whitespace-nowrap font-medium text-ink-800">{formatDate(job.moving_date)}</td>
+                      <td className="font-medium text-ink-800">{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</td>
+                      <td className="text-ink-600">{luggageLayout(job.layout, job.luggage_volume)}</td>
+                      <td className="whitespace-nowrap font-semibold text-ink-800">{formatYen(job.desired_price)}</td>
+                      <td><Badge tone={st.tone}>{st.label}</Badge></td>
+                      <td className="whitespace-nowrap text-ink-600">{shortDate(job.application_deadline)}</td>
+                      <td className="text-right">
+                        <Button size="sm" variant="secondary" onClick={() => router.push(`/jobs/${job.id}`)}>詳細</Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </SectionCard>
 
-      {loading ? (
-        <div className="flex justify-center py-16 text-brand-600">
-          <Spinner className="h-7 w-7" />
-        </div>
-      ) : jobs.length === 0 ? (
-        <EmptyState title="該当する案件がありません" description="検索条件を変更してお試しください。" />
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {jobs.map((job) => (
-            <JobCard key={job.id} job={job} />
-          ))}
-        </div>
+      {!loading && jobs.length > 0 && (
+        <>
+          <Pagination page={page} lastPage={lastPage} onPage={setPage} />
+          <p className="text-center text-xs text-ink-400">全 {total} 件</p>
+        </>
       )}
     </div>
   );

@@ -1,84 +1,209 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { Badge, PageHeader } from "@/components/ui";
+import { Badge, Button, Field, Input, SectionCard, Spinner, Tabs } from "@/components/ui";
+import { formatDate } from "@/lib/format";
 
-const ROLE_LABEL: Record<string, string> = {
-  platform_admin: "BASE88管理者",
-  company_admin: "会社管理者",
-  staff: "一般担当者",
-};
+interface CompanyDetail {
+  id: number; name: string; address: string | null; phone: string | null;
+  corporate_number: string | null; invoice_number: string | null; status: string;
+  member_code: string; registered_at: string | null; contact_email: string;
+}
+interface Staff { id: number; name: string; email: string; role: string; is_active: boolean; }
+
+const ROLE_LABEL: Record<string, string> = { platform_admin: "BASE88管理者", company_admin: "会社管理者", staff: "一般担当者" };
+const TABS = [
+  { key: "company", label: "会社情報" },
+  { key: "staff", label: "担当者管理" },
+  { key: "password", label: "パスワード変更" },
+  { key: "history", label: "各種履歴" },
+];
 
 export default function MyPage() {
   const { user } = useAuth();
-  if (!user) return null;
+  const [tab, setTab] = useState("company");
+  const [company, setCompany] = useState<CompanyDetail | null>(null);
+  const [staff, setStaff] = useState<Staff[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editOpen, setEditOpen] = useState(false);
+
+  async function loadCompany() {
+    const [c, s] = await Promise.all([
+      api<{ data: CompanyDetail | null }>("/me/company"),
+      api<{ data: Staff[] }>("/me/staff"),
+    ]);
+    setCompany(c.data);
+    setStaff(s.data);
+  }
+
+  useEffect(() => { loadCompany().finally(() => setLoading(false)); }, []);
 
   return (
-    <div className="animate-fade-in">
-      <PageHeader title="マイページ" description="アカウント・会社情報を確認できます。" />
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Account */}
-        <div className="card p-6">
-          <h2 className="text-base font-bold text-ink-900">アカウント情報</h2>
-          <dl className="mt-4 space-y-4">
-            <Row label="担当者名" value={user.name} />
-            <Row label="メールアドレス" value={user.email} />
-            <Row label="権限" value={<Badge tone="bg-brand-50 text-brand-700 ring-brand-600/20">{ROLE_LABEL[user.role] ?? user.role}</Badge>} />
-          </dl>
+    <div className="animate-fade-in space-y-5">
+      <SectionCard>
+        <div className="px-4 pt-2">
+          <Tabs tabs={TABS} active={tab} onChange={setTab} />
         </div>
 
-        {/* Company */}
-        <div className="card p-6">
-          <h2 className="text-base font-bold text-ink-900">会社情報</h2>
-          {user.company ? (
-            <dl className="mt-4 space-y-4">
-              <Row label="会社名" value={user.company.name} />
-              <Row
-                label="利用状況"
-                value={
-                  user.company.status === "approved" ? (
-                    <Badge tone="bg-emerald-50 text-emerald-700 ring-emerald-600/20">利用中</Badge>
-                  ) : (
-                    <Badge tone="bg-amber-50 text-amber-700 ring-amber-600/20">承認待ち</Badge>
-                  )
-                }
-              />
-            </dl>
+        <div className="p-6">
+          {loading ? (
+            <div className="flex justify-center py-10 text-brand-600"><Spinner className="h-7 w-7" /></div>
           ) : (
-            <p className="mt-4 text-sm text-ink-500">BASE88管理者アカウントのため、会社に紐づいていません。</p>
+            <>
+              {tab === "company" && (
+                <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+                  <div className="rounded-xl border border-ink-200">
+                    <div className="flex items-center justify-between border-b border-ink-100 px-5 py-3">
+                      <h3 className="text-sm font-bold text-ink-800">会社情報</h3>
+                      {user?.role === "company_admin" && <Button size="sm" variant="secondary" onClick={() => setEditOpen(true)}>編集する</Button>}
+                    </div>
+                    <dl className="divide-y divide-ink-100 px-5">
+                      <KV label="会社名" value={company?.name} />
+                      <KV label="所在地" value={company?.address} />
+                      <KV label="電話番号" value={company?.phone} />
+                      <KV label="メールアドレス" value={company?.contact_email} />
+                    </dl>
+                  </div>
+                  <div className="rounded-xl border border-ink-200">
+                    <div className="border-b border-ink-100 px-5 py-3"><h3 className="text-sm font-bold text-ink-800">その他情報</h3></div>
+                    <dl className="divide-y divide-ink-100 px-5">
+                      <KV label="会員ID" value={company?.member_code} />
+                      <KV label="登録日" value={company?.registered_at ? formatDate(company.registered_at) : "—"} />
+                      <KV label="会員ステータス" value={<Badge tone="bg-emerald-50 text-emerald-700 ring-emerald-600/20">正常</Badge>} />
+                    </dl>
+                  </div>
+                </div>
+              )}
+
+              {tab === "staff" && (
+                <div className="overflow-x-auto rounded-xl border border-ink-200">
+                  <table className="dtable">
+                    <thead><tr><th>担当者名</th><th>メールアドレス</th><th>権限</th><th>状態</th></tr></thead>
+                    <tbody>
+                      {staff.map((s) => (
+                        <tr key={s.id}>
+                          <td className="font-medium text-ink-800">{s.name}</td>
+                          <td className="text-ink-600">{s.email}</td>
+                          <td><Badge tone="bg-brand-50 text-brand-700 ring-brand-600/20">{ROLE_LABEL[s.role] ?? s.role}</Badge></td>
+                          <td>{s.is_active ? <Badge tone="bg-emerald-50 text-emerald-700 ring-emerald-600/20">有効</Badge> : <Badge tone="bg-ink-100 text-ink-500 ring-ink-500/20">停止</Badge>}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {tab === "password" && <PasswordForm />}
+
+              {tab === "history" && (
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <HistoryLink href="/my/jobs" label="掲載履歴" desc="自社が掲載した案件" />
+                  <HistoryLink href="/my/applications" label="応募履歴" desc="自社が応募した案件" />
+                  <HistoryLink href="/my/contracts" label="成約履歴" desc="成約した案件・顧客情報" />
+                </div>
+              )}
+            </>
           )}
         </div>
+      </SectionCard>
 
-        {/* Quick links */}
-        <div className="card p-6 lg:col-span-2">
-          <h2 className="text-base font-bold text-ink-900">履歴</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <QuickLink href="/my/jobs" label="掲載履歴" desc="自社が掲載した案件" />
-            <QuickLink href="/my/applications" label="応募履歴" desc="自社が応募した案件" />
-            <QuickLink href="/my/applications" label="成約履歴" desc="成約した案件・顧客情報" />
-          </div>
-        </div>
-      </div>
+      {editOpen && company && <EditCompanyModal company={company} onClose={() => setEditOpen(false)} onSaved={async () => { setEditOpen(false); await loadCompany(); }} />}
     </div>
   );
 }
 
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
+function KV({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-ink-100 pb-3 last:border-0 last:pb-0">
+    <div className="flex items-center justify-between gap-4 py-3.5">
       <dt className="text-sm text-ink-500">{label}</dt>
-      <dd className="text-sm font-medium text-ink-800">{value}</dd>
+      <dd className="text-right text-sm font-medium text-ink-800">{value || "—"}</dd>
     </div>
   );
 }
 
-function QuickLink({ href, label, desc }: { href: string; label: string; desc: string }) {
+function HistoryLink({ href, label, desc }: { href: string; label: string; desc: string }) {
   return (
     <Link href={href} className="rounded-xl border border-ink-200 p-4 transition-colors hover:border-brand-300 hover:bg-brand-50">
       <div className="font-semibold text-ink-900">{label}</div>
       <div className="mt-0.5 text-xs text-ink-500">{desc}</div>
     </Link>
+  );
+}
+
+function PasswordForm() {
+  const [cur, setCur] = useState("");
+  const [pw, setPw] = useState("");
+  const [conf, setConf] = useState("");
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setMsg(null);
+    try {
+      await api("/me/password", { method: "PUT", body: { current_password: cur, password: pw, password_confirmation: conf } });
+      setMsg({ ok: true, text: "パスワードを変更しました。" });
+      setCur(""); setPw(""); setConf("");
+    } catch (err) {
+      const m = err instanceof ApiError ? ((err.body as { errors?: Record<string, string[]>; message?: string }).errors?.current_password?.[0] ?? (err.body as { errors?: Record<string, string[]> }).errors?.password?.[0] ?? (err.body as { message?: string }).message) : null;
+      setMsg({ ok: false, text: m ?? "変更に失敗しました。" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className="max-w-md space-y-5">
+      {msg && <div className={`rounded-lg px-4 py-3 text-sm ${msg.ok ? "border border-emerald-200 bg-emerald-50 text-emerald-700" : "border border-rose-200 bg-rose-50 text-rose-700"}`}>{msg.text}</div>}
+      <Field label="現在のパスワード" required><Input type="password" value={cur} onChange={(e) => setCur(e.target.value)} required /></Field>
+      <Field label="新しいパスワード" required hint="8文字以上"><Input type="password" value={pw} onChange={(e) => setPw(e.target.value)} required /></Field>
+      <Field label="新しいパスワード（確認）" required><Input type="password" value={conf} onChange={(e) => setConf(e.target.value)} required /></Field>
+      <Button type="submit" loading={busy}>変更する</Button>
+    </form>
+  );
+}
+
+function EditCompanyModal({ company, onClose, onSaved }: { company: CompanyDetail; onClose: () => void; onSaved: () => void }) {
+  const [form, setForm] = useState({ name: company.name, address: company.address ?? "", phone: company.phone ?? "", corporate_number: company.corporate_number ?? "", invoice_number: company.invoice_number ?? "" });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      await api("/me/company", { method: "PUT", body: form });
+      onSaved();
+    } catch {
+      setError("更新に失敗しました。");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <form onSubmit={save} className="relative w-full max-w-lg space-y-4 rounded-2xl bg-white p-6 shadow-xl">
+        <h3 className="text-lg font-bold text-ink-900">会社情報を編集</h3>
+        {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700">{error}</div>}
+        <Field label="会社名" required><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></Field>
+        <Field label="所在地"><Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></Field>
+        <Field label="電話番号"><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="法人番号"><Input value={form.corporate_number} onChange={(e) => setForm({ ...form, corporate_number: e.target.value })} /></Field>
+          <Field label="インボイス番号"><Input value={form.invoice_number} onChange={(e) => setForm({ ...form, invoice_number: e.target.value })} /></Field>
+        </div>
+        <div className="flex justify-end gap-3 pt-2">
+          <Button type="button" variant="secondary" onClick={onClose}>キャンセル</Button>
+          <Button type="submit" loading={busy}>保存する</Button>
+        </div>
+      </form>
+    </div>
   );
 }
