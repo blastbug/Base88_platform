@@ -109,8 +109,8 @@ body {
   .btn-secondary:hover:not(:disabled) { background: var(--color-ink-50); }
   .btn-ghost { background: transparent; color: var(--color-ink-600); }
   .btn-ghost:hover:not(:disabled) { background: var(--color-ink-100); }
-  .btn-danger { background: #fff; color: #dc2626; border: 1px solid #fecaca; }
-  .btn-danger:hover:not(:disabled) { background: #fef2f2; }
+  .btn-danger { background: #fff; color: #e11d48; border: 1px solid #fecdd3; }
+  .btn-danger:hover:not(:disabled) { background: #fff1f2; }
   .btn-success { background: var(--color-brand-600); color: #fff; }
   .btn-success:hover:not(:disabled) { background: var(--color-brand-700); }
 

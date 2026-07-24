@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import type { Job, Paginated } from "@/lib/types";
@@ -14,33 +14,34 @@ export default function JobsPage() {
   const [lastPage, setLastPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // applied filters
   const [filters, setFilters] = useState({ prefecture: "", dateFrom: "", dateTo: "", status: "recruiting" });
   // draft (form) filters
   const [draft, setDraft] = useState(filters);
 
-  const load = useCallback(async (p: number, f: typeof filters) => {
-    setLoading(true);
-    const params = new URLSearchParams();
-    if (f.prefecture) params.set("prefecture", f.prefecture);
-    if (f.dateFrom) params.set("date_from", f.dateFrom);
-    if (f.dateTo) params.set("date_to", f.dateTo);
-    if (f.status) params.set("status", f.status);
-    params.set("page", String(p));
-    try {
-      const res = await api<Paginated<Job>>(`/jobs?${params.toString()}`);
-      setJobs(res.data);
-      setLastPage(res.meta?.last_page ?? 1);
-      setTotal(res.meta?.total ?? res.data.length);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    load(page, filters);
-  }, [load, page, filters]);
+    let active = true;
+    setLoading(true);
+    setError(null);
+    const params = new URLSearchParams();
+    if (filters.prefecture) params.set("prefecture", filters.prefecture);
+    if (filters.dateFrom) params.set("date_from", filters.dateFrom);
+    if (filters.dateTo) params.set("date_to", filters.dateTo);
+    if (filters.status) params.set("status", filters.status);
+    params.set("page", String(page));
+    api<Paginated<Job>>(`/jobs?${params.toString()}`)
+      .then((res) => {
+        if (!active) return;
+        setJobs(res.data);
+        setLastPage(res.meta?.last_page ?? 1);
+        setTotal(res.meta?.total ?? res.data.length);
+      })
+      .catch(() => { if (active) setError("案件の取得に失敗しました。時間をおいて再度お試しください。"); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [page, filters]);
 
   function search() {
     setFilters(draft);
@@ -55,6 +56,7 @@ export default function JobsPage() {
 
   return (
     <div className="animate-fade-in space-y-5">
+      {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
       {/* Filter bar */}
       <div className="card p-4">
         <div className="grid gap-3 lg:grid-cols-[1fr_1.4fr_1fr_auto] lg:items-end">
@@ -68,9 +70,9 @@ export default function JobsPage() {
           <label className="block">
             <span className="mb-1 block text-xs font-medium text-ink-500">引越予定日</span>
             <div className="flex items-center gap-2">
-              <input type="date" className="input-base" value={draft.dateFrom} onChange={(e) => setDraft({ ...draft, dateFrom: e.target.value })} />
+              <input type="date" className="input-base min-w-0" value={draft.dateFrom} onChange={(e) => setDraft({ ...draft, dateFrom: e.target.value })} />
               <span className="text-ink-400">〜</span>
-              <input type="date" className="input-base" value={draft.dateTo} onChange={(e) => setDraft({ ...draft, dateTo: e.target.value })} />
+              <input type="date" className="input-base min-w-0" value={draft.dateTo} onChange={(e) => setDraft({ ...draft, dateTo: e.target.value })} />
             </div>
           </label>
           <label className="block">

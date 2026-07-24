@@ -1,11 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import type { Job } from "@/lib/types";
-import { Badge, Button, EmptyState, Spinner, Textarea } from "@/components/ui";
+import { Badge, Button, EmptyState, LinkButton, Spinner, Textarea } from "@/components/ui";
 import { displayJobStatus, formatDate, formatDateTime, formatYen, luggageLayout, route } from "@/lib/format";
 
 export default function JobDetailPage() {
@@ -16,16 +15,20 @@ export default function JobDetailPage() {
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [banner, setBanner] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [applyOpen, setApplyOpen] = useState(false);
 
   const load = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
     try {
       const res = await api<{ data: Job }>(`/jobs/${id}`);
       setJob(res.data);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) setNotFound(true);
+      else setLoadError("案件の読み込みに失敗しました。時間をおいて再度お試しください。");
     } finally {
       setLoading(false);
     }
@@ -39,6 +42,7 @@ export default function JobDetailPage() {
   }, []);
 
   if (loading) return <div className="flex justify-center py-24 text-brand-600"><Spinner className="h-8 w-8" /></div>;
+  if (loadError) return <div className="card"><EmptyState title="読み込みに失敗しました" description={loadError} action={<Button variant="secondary" onClick={load}>再読み込み</Button>} /></div>;
   if (notFound || !job) return <div className="card"><EmptyState title="案件が見つかりません" description="削除された、またはアクセス権のない案件です。" action={<Button variant="secondary" onClick={() => router.push("/jobs")}>案件一覧へ</Button>} /></div>;
 
   const st = displayJobStatus(job.status, job.application_deadline);
@@ -103,7 +107,7 @@ export default function JobDetailPage() {
           {job.is_owner ? (
             <>
               <OwnerActions job={job} onChanged={load} setError={setError} />
-              <Link href={`/my/jobs/${job.id}/applications`} className="btn btn-primary">応募者一覧を見る</Link>
+              <LinkButton href={`/my/jobs/${job.id}/applications`}>応募者一覧を見る</LinkButton>
             </>
           ) : (
             <>
@@ -202,9 +206,9 @@ function ApplyModal({ jobId, onClose, onApplied, setError }: { jobId: number; on
     }
   }
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+      <div className="relative my-auto max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
         <h3 className="text-lg font-bold text-ink-900">この案件に応募する</h3>
         <p className="mt-1 text-sm text-ink-500">掲載会社へのメッセージを添えて応募できます（任意）。</p>
         <Textarea rows={4} className="mt-4" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="対応可能な日程や実績など" />

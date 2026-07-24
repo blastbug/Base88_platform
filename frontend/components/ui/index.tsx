@@ -218,7 +218,7 @@ export function Stepper({ steps, current }: { steps: string[]; current: number }
               >
                 {done ? "✓" : i + 1}
               </div>
-              <span className={`text-sm font-semibold ${active ? "text-ink-900" : done ? "text-brand-700" : "text-ink-400"}`}>{label}</span>
+              <span className={`hidden text-sm font-semibold sm:inline ${active ? "text-ink-900" : done ? "text-brand-700" : "text-ink-400"}`}>{label}</span>
             </div>
             {i < steps.length - 1 && <div className={`mx-3 h-px flex-1 ${done ? "bg-brand-300" : "bg-ink-200"}`} />}
           </div>

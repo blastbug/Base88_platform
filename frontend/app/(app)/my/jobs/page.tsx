@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import type { Job, Paginated } from "@/lib/types";
@@ -21,22 +21,26 @@ export default function MyJobsPage() {
   const [page, setPage] = useState(1);
   const [lastPage, setLastPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async (status: string, p: number) => {
+  useEffect(() => {
+    let active = true;
     setLoading(true);
-    try {
-      const res = await api<Paginated<Job>>(`/my/jobs?status=${status}&page=${p}`);
-      setJobs(res.data);
-      setLastPage(res.meta?.last_page ?? 1);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { load(tab, page); }, [load, tab, page]);
+    setError(null);
+    api<Paginated<Job>>(`/my/jobs?status=${tab}&page=${page}`)
+      .then((res) => {
+        if (!active) return;
+        setJobs(res.data);
+        setLastPage(res.meta?.last_page ?? 1);
+      })
+      .catch(() => { if (active) setError("案件の取得に失敗しました。時間をおいて再度お試しください。"); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [tab, page]);
 
   return (
     <div className="animate-fade-in space-y-5">
+      {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
       <div className="flex items-center justify-between">
         <div />
         <LinkButton href="/jobs/new">＋ 案件を投稿</LinkButton>

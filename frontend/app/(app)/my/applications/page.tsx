@@ -18,11 +18,15 @@ export default function MyApplicationsPage() {
   const [tab, setTab] = useState("applied");
   const [apps, setApps] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let active = true;
     api<Paginated<Application>>("/my/applications")
-      .then((res) => setApps(res.data))
-      .finally(() => setLoading(false));
+      .then((res) => { if (active) setApps(res.data); })
+      .catch(() => { if (active) setError("応募履歴の取得に失敗しました。時間をおいて再度お試しください。"); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, []);
 
   const filtered = useMemo(() => apps.filter((a) => a.status === tab), [apps, tab]);
@@ -34,6 +38,7 @@ export default function MyApplicationsPage() {
 
   return (
     <div className="animate-fade-in space-y-5">
+      {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
       <SectionCard>
         <div className="px-4 pt-2">
           <Tabs tabs={TABS.map((t) => ({ ...t, count: counts[t.key as keyof typeof counts] }))} active={tab} onChange={setTab} />

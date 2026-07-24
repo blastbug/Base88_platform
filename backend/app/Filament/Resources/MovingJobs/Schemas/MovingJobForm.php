@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\MovingJobs\Schemas;
 
+use App\Models\MovingJob;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
@@ -16,38 +17,34 @@ class MovingJobForm
     {
         return $schema
             ->components([
-                Select::make('company_id')
-                    ->relationship('company', 'name')
+                Select::make('company_id')->label('掲載会社')
+                    ->relationship('company', 'name')->required(),
+                DatePicker::make('moving_date')->label('引越予定日')->required(),
+                TextInput::make('time_slot')->label('時間帯'),
+                TextInput::make('from_prefecture')->label('出発地（都道府県）')->required(),
+                TextInput::make('from_city')->label('出発地（市区町村）'),
+                TextInput::make('to_prefecture')->label('到着地（都道府県）')->required(),
+                TextInput::make('to_city')->label('到着地（市区町村）'),
+                TextInput::make('building_type')->label('建物種別')->required(),
+                TextInput::make('layout')->label('間取り'),
+                TextInput::make('luggage_volume')->label('荷物量')->required(),
+                TextInput::make('truck_size')->label('トラックサイズ'),
+                TextInput::make('worker_count')->label('必要人数')->numeric(),
+                TextInput::make('floors')->label('階数'),
+                Toggle::make('has_elevator')->label('エレベーター有無'),
+                TextInput::make('desired_price')->label('希望金額')->numeric()->prefix('¥'),
+                Textarea::make('note')->label('備考')->columnSpanFull(),
+                DateTimePicker::make('application_deadline')->label('応募締切')->required(),
+                Select::make('status')->label('募集状況')
+                    ->options([
+                        MovingJob::STATUS_RECRUITING => '募集中',
+                        MovingJob::STATUS_CLOSED => '募集終了',
+                        MovingJob::STATUS_CONTRACTED => '成約済',
+                        MovingJob::STATUS_COMPLETED => '完了',
+                        MovingJob::STATUS_CANCELLED => 'キャンセル',
+                    ])
+                    ->default(MovingJob::STATUS_RECRUITING)
                     ->required(),
-                DatePicker::make('moving_date')
-                    ->required(),
-                TextInput::make('time_slot'),
-                TextInput::make('from_prefecture')
-                    ->required(),
-                TextInput::make('from_city'),
-                TextInput::make('to_prefecture')
-                    ->required(),
-                TextInput::make('to_city'),
-                TextInput::make('building_type')
-                    ->required(),
-                TextInput::make('layout'),
-                TextInput::make('luggage_volume')
-                    ->required(),
-                TextInput::make('truck_size'),
-                TextInput::make('worker_count')
-                    ->numeric(),
-                TextInput::make('floors'),
-                Toggle::make('has_elevator'),
-                TextInput::make('desired_price')
-                    ->numeric()
-                    ->prefix('$'),
-                Textarea::make('note')
-                    ->columnSpanFull(),
-                DateTimePicker::make('application_deadline')
-                    ->required(),
-                TextInput::make('status')
-                    ->required()
-                    ->default('recruiting'),
             ]);
     }
 }

@@ -28,21 +28,28 @@ export default function MyPage() {
   const [company, setCompany] = useState<CompanyDetail | null>(null);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
 
   async function loadCompany() {
-    const [c, s] = await Promise.all([
-      api<{ data: CompanyDetail | null }>("/me/company"),
-      api<{ data: Staff[] }>("/me/staff"),
-    ]);
-    setCompany(c.data);
-    setStaff(s.data);
+    try {
+      const [c, s] = await Promise.all([
+        api<{ data: CompanyDetail | null }>("/me/company"),
+        api<{ data: Staff[] }>("/me/staff"),
+      ]);
+      setCompany(c.data);
+      setStaff(s.data);
+      setError(null);
+    } catch {
+      setError("会社情報の取得に失敗しました。時間をおいて再度お試しください。");
+    }
   }
 
   useEffect(() => { loadCompany().finally(() => setLoading(false)); }, []);
 
   return (
     <div className="animate-fade-in space-y-5">
+      {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
       <SectionCard>
         <div className="px-4 pt-2">
           <Tabs tabs={TABS} active={tab} onChange={setTab} />
@@ -187,9 +194,9 @@ function EditCompanyModal({ company, onClose, onSaved }: { company: CompanyDetai
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <form onSubmit={save} className="relative w-full max-w-lg space-y-4 rounded-2xl bg-white p-6 shadow-xl">
+      <form onSubmit={save} className="relative my-auto max-h-[90dvh] w-full max-w-lg space-y-4 overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
         <h3 className="text-lg font-bold text-ink-900">会社情報を編集</h3>
         {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700">{error}</div>}
         <Field label="会社名" required><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></Field>

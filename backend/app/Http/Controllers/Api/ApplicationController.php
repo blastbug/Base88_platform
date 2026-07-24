@@ -62,10 +62,12 @@ class ApplicationController extends Controller
     {
         $user = $request->user();
 
+        // タブ（応募中／成約済み／不成立）でクライアント側分類するため、
+        // 十分な件数をまとめて返す（テスト運用規模を想定）。
         $applications = JobApplication::where('company_id', $user->company_id)
             ->with(['movingJob.company'])
             ->latest()
-            ->paginate(12);
+            ->paginate(50);
 
         return ApplicationResource::collection($applications)->response();
     }
