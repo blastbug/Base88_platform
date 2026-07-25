@@ -46,6 +46,45 @@ export function displayJobStatus(status: JobStatus, deadlineIso?: string | null)
   return { label: JOB_STATUS_LABEL[status], tone: JOB_STATUS_TONE[status] };
 }
 
+/** 一覧向けステータス（募集中・締切間近・募集終了・成約済・完了）。締切5日以内は「締切間近」。 */
+export function listJobStatus(status: JobStatus, deadlineIso?: string | null): { label: string; tone: string } {
+  const GREEN = "bg-emerald-50 text-emerald-700 ring-emerald-600/20";
+  const AMBER = "bg-amber-50 text-amber-700 ring-amber-600/20";
+  const ROSE = "bg-rose-50 text-rose-700 ring-rose-600/20";
+  const BRAND = "bg-brand-50 text-brand-700 ring-brand-600/20";
+  const INK = "bg-ink-100 text-ink-600 ring-ink-500/20";
+  if (status === "recruiting") {
+    if (deadlineIso) {
+      const diff = new Date(deadlineIso).getTime() - Date.now();
+      if (diff <= 0) return { label: "募集終了", tone: ROSE };
+      if (diff <= 5 * 86400000) return { label: "締切間近", tone: AMBER };
+    }
+    return { label: "募集中", tone: GREEN };
+  }
+  if (status === "closed") return { label: "募集終了", tone: ROSE };
+  if (status === "contracted") return { label: "成約済", tone: BRAND };
+  if (status === "completed") return { label: "完了", tone: INK };
+  return { label: "キャンセル", tone: ROSE };
+}
+
+/** 案件表示コード（例: T-2026-0815-001）。moving_date と id から生成。 */
+export function jobCode(id: number, movingIso?: string | null): string {
+  const d = movingIso ? new Date(movingIso) : null;
+  const datePart = d && !isNaN(d.getTime())
+    ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`
+    : "0000-0000";
+  return `T-${datePart}-${String(id).padStart(3, "0")}`;
+}
+
+/** 曜日付きの日付（例: 2026/08/15 (金)） */
+export function formatDateDow(iso?: string | null): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "—";
+  const dow = ["日", "月", "火", "水", "木", "金", "土"][d.getDay()];
+  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")} (${dow})`;
+}
+
 export const APPLICATION_STATUS_LABEL: Record<ApplicationStatus, string> = {
   applied: "応募中",
   accepted: "成約",

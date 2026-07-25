@@ -27,12 +27,27 @@ class JobController extends Controller
 
         $query = MovingJob::query()
             ->with('company')
-            ->withCount('applications')
-            ->latest('created_at');
+            ->withCount('applications');
 
         // 検索条件
         if ($pref = $request->query('prefecture')) {
             $query->where('from_prefecture', $pref);
+        }
+        // キーワード（出発地・到着地・案件ID）
+        if ($kw = trim((string) $request->query('keyword'))) {
+            $query->where(function ($q) use ($kw) {
+                $q->where('from_prefecture', 'like', "%{$kw}%")
+                    ->orWhere('from_city', 'like', "%{$kw}%")
+                    ->orWhere('to_prefecture', 'like', "%{$kw}%")
+                    ->orWhere('to_city', 'like', "%{$kw}%");
+                if (preg_match('/(\d{1,})\s*$/', $kw, $m)) {
+                    $q->orWhere('id', (int) ltrim($m[1], '0') ?: 0);
+                }
+            });
+        }
+        // 荷物量 / 間取り
+        if ($layout = trim((string) $request->query('layout'))) {
+            $query->where('layout', 'like', "%{$layout}%");
         }
         if ($date = $request->query('date')) {
             $query->whereDate('moving_date', $date);
@@ -59,7 +74,17 @@ class JobController extends Controller
             $query->whereIn('status', $public);
         }
 
-        $jobs = $query->paginate(12);
+        // 並び順
+        match ($request->query('sort', 'new')) {
+            'old' => $query->oldest('created_at'),
+            'deadline' => $query->orderByRaw('application_deadline IS NULL, application_deadline asc'),
+            'applications' => $query->orderByDesc('applications_count')->latest('created_at'),
+            'moving_asc' => $query->orderBy('moving_date', 'asc'),
+            'moving_desc' => $query->orderByDesc('moving_date'),
+            default => $query->latest('created_at'),
+        };
+
+        $jobs = $query->paginate(12)->withQueryString();
 
         // 自社の応募済み案件IDを付与（has_applied フラグ用）
         $appliedIds = JobApplication::where('company_id', $user->company_id)
