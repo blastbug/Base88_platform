@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Route;
 
 // 認証不要
 Route::post('/auth/login', [AuthController::class, 'login']);
+Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
 
 // 認証必須（Sanctum トークン）
 Route::middleware('auth:sanctum')->group(function () {

@@ -9,9 +9,12 @@ use App\Models\JobApplication;
 use App\Models\JobContract;
 use App\Models\MovingJob;
 use App\Models\MovingJobCustomerDetail;
+use App\Models\User;
+use App\Notifications\ContractAwarded;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -204,7 +207,7 @@ class JobController extends Controller
             ],
         ]);
 
-        DB::transaction(function () use ($job, $data) {
+        $winningCompanyId = DB::transaction(function () use ($job, $data) {
             $winning = JobApplication::where('id', $data['application_id'])->firstOrFail();
 
             JobApplication::where('moving_job_id', $job->id)
@@ -222,8 +225,17 @@ class JobController extends Controller
                     'contracted_at' => now(),
                 ]
             );
-            // TODO: 成約通知メール（§5-8）
+
+            return $winning->company_id;
         });
+
+        // 成約会社（受注側）の担当者へ成約通知（メール失敗は業務処理を止めない）
+        try {
+            $recipients = User::where('company_id', $winningCompanyId)->where('is_active', true)->get();
+            Notification::send($recipients, new ContractAwarded($job));
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return response()->json(['message' => '成約処理が完了しました。']);
     }

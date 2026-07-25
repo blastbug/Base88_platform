@@ -8,6 +8,8 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -64,6 +66,41 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         return response()->json(['user' => $this->userPayload($request->user())]);
+    }
+
+    /** パスワード再設定メールの送信（メールアドレスの存在は明かさない） */
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $request->validate(['email' => ['required', 'email']]);
+
+        Password::sendResetLink($request->only('email'));
+
+        // 登録有無に関わらず同じ応答（アカウント列挙防止）
+        return response()->json([
+            'message' => 'ご登録がある場合、パスワード再設定用のメールをお送りしました。',
+        ]);
+    }
+
+    /** パスワード再設定の実行 */
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'token' => ['required', 'string'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'confirmed', PasswordRule::min(8)],
+        ]);
+
+        $status = Password::reset($data, function (User $user, string $password) {
+            $user->forceFill(['password' => Hash::make($password)])->save();
+        });
+
+        if ($status !== Password::PASSWORD_RESET) {
+            throw ValidationException::withMessages([
+                'email' => ['再設定に失敗しました。リンクが無効、または有効期限が切れている可能性があります。'],
+            ]);
+        }
+
+        return response()->json(['message' => 'パスワードを再設定しました。ログインしてください。']);
     }
 
     private function userPayload(User $user): array

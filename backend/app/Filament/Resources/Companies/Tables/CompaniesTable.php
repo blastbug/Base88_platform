@@ -3,10 +3,12 @@
 namespace App\Filament\Resources\Companies\Tables;
 
 use App\Models\Company;
+use App\Notifications\CompanyApproved;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Notification;
 
 class CompaniesTable
 {
@@ -53,7 +55,17 @@ class CompaniesTable
                     ->visible(fn (Company $r) => $r->status !== Company::STATUS_APPROVED)
                     ->requiresConfirmation()
                     ->modalHeading('加盟会社を承認')
-                    ->action(fn (Company $r) => $r->update(['status' => Company::STATUS_APPROVED, 'approved_at' => now()])),
+                    ->action(function (Company $r) {
+                        $r->update(['status' => Company::STATUS_APPROVED, 'approved_at' => now()]);
+                        try {
+                            Notification::send(
+                                $r->users()->where('is_active', true)->get(),
+                                new CompanyApproved($r)
+                            );
+                        } catch (\Throwable $e) {
+                            report($e);
+                        }
+                    }),
                 Action::make('suspend')
                     ->label('停止')
                     ->color('danger')

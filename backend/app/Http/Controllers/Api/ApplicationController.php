@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\ApplicationResource;
 use App\Models\JobApplication;
 use App\Models\MovingJob;
+use App\Notifications\JobApplied;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 
 class ApplicationController extends Controller
@@ -50,9 +52,16 @@ class ApplicationController extends Controller
             'message' => $data['message'] ?? null,
             'status' => JobApplication::STATUS_APPLIED,
         ]);
-        // TODO: 応募通知メール（§5-8）
 
         $application->load(['company', 'applicant']);
+
+        // 掲載（発注）会社の担当者へ応募通知（メール失敗は業務処理を止めない）
+        try {
+            $recipients = $job->company->users()->where('is_active', true)->get();
+            Notification::send($recipients, new JobApplied($job, $application));
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return (new ApplicationResource($application))->response()->setStatusCode(201);
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
@@ -143,9 +144,9 @@ export default function LoginPage() {
                 />
                 ログインしたままにする
               </label>
-              <span className="cursor-pointer text-sm font-medium text-brand-600 hover:text-brand-700">
+              <Link href="/forgot-password" className="text-sm font-medium text-brand-600 hover:text-brand-700">
                 パスワードをお忘れですか？
-              </span>
+              </Link>
             </div>
 
             <Button type="submit" loading={submitting} className="!py-3.5 w-full text-base">ログイン</Button>

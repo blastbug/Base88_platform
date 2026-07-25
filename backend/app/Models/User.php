@@ -66,4 +66,10 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->isPlatformAdmin() && $this->is_active;
     }
+
+    /** パスワード再設定メールをフロントエンド用のカスタム通知で送る */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new \App\Notifications\ResetPasswordLink($token));
+    }
 }
