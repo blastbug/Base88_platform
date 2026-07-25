@@ -18,6 +18,20 @@ function Ic({ d, className = "h-5 w-5" }: { d: string; className?: string }) {
     </svg>
   );
 }
+/** マルチパス（lucide 準拠）アイコン用ラッパー */
+function Svg({ children, className = "h-5 w-5" }: { children: ReactNode; className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      {children}
+    </svg>
+  );
+}
+
+/* lucide 準拠アイコン（参考デザインに合わせる） */
+const IconFolder = <Svg><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" /></Svg>;
+const IconFile = <Svg><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /><path d="M16 13H8" /><path d="M16 17H8" /><path d="M10 9H8" /></Svg>;
+const IconUsers = <Svg><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></Svg>;
+const IconHandshake = <Svg><path d="m11 17 2 2a1 1 0 1 0 3-3" /><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4" /><path d="m21 3 1 11h-2" /><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3" /><path d="M3 4h8" /></Svg>;
 const CHEVRON = "m9 18 6-6-6-6";
 function dateDow(iso?: string | null): string {
   if (!iso) return "—";
@@ -53,14 +67,10 @@ export default function DashboardPage() {
       <section className="card p-5">
         <SectionHead title="概要" href="/jobs" />
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard tone="bg-brand-50 text-brand-600" label="募集中の案件" value={data.stats.recruiting} delta={data.deltas.recruiting}
-            icon={<Ic d="m21 21-4.3-4.3M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z" />} />
-          <StatCard tone="bg-emerald-50 text-emerald-600" label="自社掲載中の案件" value={data.stats.my_posted} delta={data.deltas.my_posted}
-            icon={<Ic d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2M9 12h6M9 16h4" />} />
-          <StatCard tone="bg-sky-50 text-sky-600" label="自社の応募中" value={data.stats.my_applications} delta={data.deltas.my_applications}
-            icon={<Ic d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z" />} />
-          <StatCard tone="bg-amber-50 text-amber-600" label="成約済" value={data.stats.my_contracted} delta={data.deltas.my_contracted}
-            icon={<Ic d="M9 12l2 2 4-4M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z" />} />
+          <StatCard tone="bg-blue-50 text-blue-600" label="募集中の案件" value={data.stats.recruiting} delta={data.deltas.recruiting} icon={IconFolder} />
+          <StatCard tone="bg-emerald-50 text-emerald-600" label="自社掲載中の案件" value={data.stats.my_posted} delta={data.deltas.my_posted} icon={IconFile} />
+          <StatCard tone="bg-violet-50 text-violet-600" label="自社の応募数" value={data.stats.my_applications} delta={data.deltas.my_applications} icon={IconUsers} />
+          <StatCard tone="bg-orange-50 text-orange-600" label="成約済みの案件" value={data.stats.my_contracted} delta={data.deltas.my_contracted} icon={IconHandshake} />
         </div>
       </section>
 
@@ -215,10 +225,10 @@ function MyJobsList({ jobs, router }: { jobs: Job[]; router: Nav }) {
   );
 }
 
-const ACT: Record<ActivityItem["type"], { tone: string; d: string }> = {
-  contract: { tone: "bg-emerald-50 text-emerald-600", d: "M9 12l2 2 4-4M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z" },
-  application: { tone: "bg-brand-50 text-brand-600", d: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" },
-  posted: { tone: "bg-sky-50 text-sky-600", d: "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5zM14 3v5h5" },
+const ACT: Record<ActivityItem["type"], { tone: string; icon: ReactNode }> = {
+  contract: { tone: "bg-emerald-50 text-emerald-600", icon: <Svg className="h-4 w-4"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z" /><path d="m9 12 2 2 4-4" /></Svg> },
+  application: { tone: "bg-violet-50 text-violet-600", icon: <Svg className="h-4 w-4"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></Svg> },
+  posted: { tone: "bg-blue-50 text-blue-600", icon: <Svg className="h-4 w-4"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /></Svg> },
 };
 function ActivityList({ items }: { items: ActivityItem[] }) {
   if (items.length === 0) return <div className="px-5 py-10 text-center text-sm text-ink-500">最近の活動はありません。</div>;
@@ -228,7 +238,7 @@ function ActivityList({ items }: { items: ActivityItem[] }) {
         const c = ACT[a.type] ?? ACT.posted;
         return (
           <li key={i} className="flex gap-3 px-5 py-3.5">
-            <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${c.tone}`}><Ic d={c.d} className="h-4 w-4" /></span>
+            <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${c.tone}`}>{c.icon}</span>
             <div className="min-w-0">
               <div className="text-sm font-semibold text-ink-800">{a.text}</div>
               <div className="truncate text-xs text-ink-500">{a.route}</div>
@@ -266,18 +276,18 @@ function AnnouncementList({ items }: { items: AnnouncementItem[] }) {
   );
 }
 
-const QUICK = [
-  { href: "/jobs/new", title: "案件を投稿する", desc: "新しい案件を掲載します", tone: "bg-brand-50 text-brand-600", d: "M12 5v14M5 12h14" },
-  { href: "/jobs", title: "案件を検索する", desc: "募集中の案件を検索します", tone: "bg-emerald-50 text-emerald-600", d: "m21 21-4.3-4.3M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z" },
-  { href: "/my/applications", title: "応募履歴を見る", desc: "自社の応募状況を確認します", tone: "bg-sky-50 text-sky-600", d: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" },
-  { href: "/mypage", title: "マイページへ", desc: "会社情報や各種設定を行います", tone: "bg-amber-50 text-amber-600", d: "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5zM14 3v5h5" },
+const QUICK: { href: string; title: string; desc: string; tone: string; icon: ReactNode }[] = [
+  { href: "/jobs/new", title: "案件を投稿する", desc: "新しい案件を掲載します", tone: "bg-blue-50 text-blue-600", icon: <Svg className="h-4 w-4"><path d="M12 5v14M5 12h14" /></Svg> },
+  { href: "/jobs", title: "案件を検索する", desc: "募集中の案件を検索します", tone: "bg-emerald-50 text-emerald-600", icon: <Svg className="h-4 w-4"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></Svg> },
+  { href: "/my/applications", title: "応募履歴を見る", desc: "自社の応募状況を確認します", tone: "bg-violet-50 text-violet-600", icon: <Svg className="h-4 w-4"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></Svg> },
+  { href: "/mypage", title: "マイページへ", desc: "会社情報や各種設定を行います", tone: "bg-orange-50 text-orange-600", icon: <Svg className="h-4 w-4"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /></Svg> },
 ];
 function QuickActions() {
   return (
     <div className="divide-y divide-ink-100">
       {QUICK.map((q) => (
         <Link key={q.href} href={q.href} className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-ink-50">
-          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${q.tone}`}><Ic d={q.d} className="h-4 w-4" /></span>
+          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${q.tone}`}>{q.icon}</span>
           <div className="min-w-0 flex-1">
             <div className="text-sm font-semibold text-ink-800">{q.title}</div>
             <div className="text-xs text-ink-500">{q.desc}</div>

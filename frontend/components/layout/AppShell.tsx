@@ -83,11 +83,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               href={item.href}
               onClick={() => setDrawer(false)}
               className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                on ? "bg-nav-700 text-white" : "text-ink-300 hover:bg-nav-700/50 hover:text-white"
+                on ? "bg-brand-600 text-white shadow-sm" : "text-ink-300 hover:bg-white/5 hover:text-white"
               }`}
             >
-              {on && <span className="absolute inset-y-1.5 left-0 w-1 rounded-r bg-brand-500" />}
-              <span className={on ? "text-brand-400" : "text-ink-400"}>{item.icon}</span>
+              <span className={on ? "text-white" : "text-ink-400"}>{item.icon}</span>
               {item.label}
             </Link>
           );
