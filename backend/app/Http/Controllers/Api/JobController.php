@@ -275,7 +275,7 @@ class JobController extends Controller
 
         $request->validate([
             'files' => ['required', 'array', 'max:3'],
-            'files.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'], // 10MB
+            'files.*' => ['file', 'mimes:jpg,jpeg,png,webp,gif,pdf', 'max:10240'], // 10MB
         ]);
 
         $existing = $job->getMedia('attachments')->count();

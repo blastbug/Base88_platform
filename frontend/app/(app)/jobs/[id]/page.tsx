@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import type { Job } from "@/lib/types";
@@ -34,11 +34,13 @@ export default function JobDetailPage() {
     }
   }, [id]);
 
+  const [uploadWarn, setUploadWarn] = useState(false);
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
-    if (typeof window !== "undefined" && window.location.search.includes("created=1")) {
-      setBanner("案件を掲載しました。他社からの応募をお待ちください。");
-    }
+    if (typeof window === "undefined") return;
+    const q = window.location.search;
+    if (q.includes("created=1")) setBanner("案件を掲載しました。他社からの応募をお待ちください。");
+    if (q.includes("upload=failed")) setUploadWarn(true);
   }, []);
 
   if (loading) return <div className="flex justify-center py-24 text-brand-600"><Spinner className="h-8 w-8" /></div>;
@@ -59,6 +61,12 @@ export default function JobDetailPage() {
         <div className="mb-5 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" /></svg>
           {banner}
+        </div>
+      )}
+      {uploadWarn && (
+        <div className="mb-5 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          添付ファイルのアップロードに失敗しました。下の「添付ファイル」から再度追加してください。
         </div>
       )}
       {error && <div className="mb-5 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
@@ -111,6 +119,9 @@ export default function JobDetailPage() {
               <div className="flex aspect-[4/3] items-center justify-center rounded-lg border border-dashed border-ink-200 bg-ink-50 text-sm text-ink-400">
                 添付ファイルはありません
               </div>
+            )}
+            {job.is_owner && job.status !== "completed" && job.status !== "cancelled" && (
+              <AttachmentUploader jobId={job.id} count={job.attachments?.length ?? 0} onUploaded={load} />
             )}
           </div>
         </div>
@@ -230,6 +241,50 @@ function ApplyModal({ jobId, onClose, onApplied, setError }: { jobId: number; on
           <Button loading={busy} onClick={submit}>応募する</Button>
         </div>
       </div>
+    </div>
+  );
+}
+
+const UPLOAD_ACCEPT = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
+
+function AttachmentUploader({ jobId, count, onUploaded }: { jobId: number; count: number; onUploaded: () => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const remaining = 3 - count;
+
+  async function onFiles(list: FileList | null) {
+    setErr(null);
+    if (!list || list.length === 0) return;
+    const fd = new FormData();
+    let added = 0;
+    for (const f of Array.from(list).slice(0, remaining)) {
+      if (!UPLOAD_ACCEPT.includes(f.type)) { setErr("画像（JPG/PNG/WebP/GIF）またはPDFのみ添付できます。"); continue; }
+      if (f.size > 10 * 1024 * 1024) { setErr("1ファイルあたり最大10MBです。"); continue; }
+      fd.append("files[]", f);
+      added++;
+    }
+    if (added === 0) return;
+    setBusy(true);
+    try {
+      await api(`/jobs/${jobId}/attachments`, { method: "POST", body: fd });
+      onUploaded();
+    } catch (e) {
+      const m = e instanceof ApiError ? ((e.body as { errors?: Record<string, string[]>; message?: string }).errors?.["files.0"]?.[0] ?? (e.body as { message?: string }).message) : null;
+      setErr(m ?? "アップロードに失敗しました。時間をおいて再度お試しください。");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (remaining <= 0) return <p className="mt-3 text-xs text-ink-400">添付は上限（3件）に達しています。</p>;
+
+  return (
+    <div className="mt-3">
+      <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" multiple className="hidden" onChange={(e) => { onFiles(e.target.files); e.target.value = ""; }} />
+      <Button size="sm" variant="secondary" loading={busy} onClick={() => inputRef.current?.click()}>＋ 添付ファイルを追加</Button>
+      {err && <p className="mt-1.5 text-xs text-rose-600">{err}</p>}
+      <p className="mt-1.5 text-xs text-ink-400">残り{remaining}件・JPG / PNG / WebP / GIF / PDF・最大10MB</p>
     </div>
   );
 }

@@ -32,7 +32,7 @@ export default function NewJobPage() {
   function set<K extends keyof typeof form>(k: K, v: string) { setForm((f) => ({ ...f, [k]: v })); }
   const err = (k: string) => errors[k]?.[0];
 
-  const ACCEPT = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+  const ACCEPT = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
   function addFiles(list: FileList | File[]) {
     setFileError(null);
     const incoming = Array.from(list);
@@ -79,17 +79,18 @@ export default function NewJobPage() {
     Object.keys(payload).forEach((k) => { if (payload[k] === "") payload[k] = null; });
     try {
       const res = await api<{ data: Job }>("/jobs", { method: "POST", body: payload });
-      // 添付ファイルがあれば作成後にアップロード（失敗しても掲載自体は完了させる）
+      // 添付ファイルがあれば作成後にアップロード（失敗しても掲載自体は完了させ、詳細画面で通知）
+      let uploadFailed = false;
       if (files.length > 0) {
         const fd = new FormData();
         files.forEach((f) => fd.append("files[]", f));
         try {
           await api(`/jobs/${res.data.id}/attachments`, { method: "POST", body: fd });
         } catch {
-          /* 添付の失敗は掲載を止めない */
+          uploadFailed = true;
         }
       }
-      router.push(`/jobs/${res.data.id}?created=1`);
+      router.push(`/jobs/${res.data.id}?created=1${uploadFailed ? "&upload=failed" : ""}`);
     } catch (e2) {
       if (e2 instanceof ApiError && e2.status === 422) {
         setErrors((e2.body as { errors?: Errors }).errors ?? {});
@@ -195,7 +196,7 @@ export default function NewJobPage() {
                 <input
                   ref={fileInput}
                   type="file"
-                  accept="image/jpeg,image/png,image/webp,application/pdf"
+                  accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
                   multiple
                   className="hidden"
                   onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }}

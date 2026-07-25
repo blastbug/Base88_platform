@@ -56,9 +56,11 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
   };
 
   let body: BodyInit | undefined;
+  let isUpload = false;
   if (options.body !== undefined) {
     if (options.body instanceof FormData) {
       body = options.body;
+      isUpload = true;
     } else {
       headers["Content-Type"] = "application/json";
       body = JSON.stringify(options.body);
@@ -67,8 +69,9 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
   // 応答が返らずに無限ローディングにならないよう、タイムアウトを設ける。
+  // ファイルアップロード（FormData）は回線が遅い環境でも失敗しないよう長めにする。
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 20000);
+  const timer = setTimeout(() => controller.abort(), isUpload ? 120000 : 20000);
 
   let res: Response;
   try {

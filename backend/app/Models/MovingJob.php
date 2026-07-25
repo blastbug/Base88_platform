@@ -91,6 +91,7 @@ class MovingJob extends Model implements HasMedia
                 'image/jpeg',
                 'image/png',
                 'image/webp',
+                'image/gif',
                 'application/pdf',
             ]);
     }
