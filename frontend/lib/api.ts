@@ -2,34 +2,17 @@
  * BASE88 API クライアント
  * Laravel API（Sanctum トークン認証）と通信するための薄いラッパー。
  *
- * API のベースURLは実行時に画面のURLから自動判定します：
- *  - localhost / 127.0.0.1（任意のフロントポート） → 同ホストの :8000
- *  - VS Code Dev Tunnel（例 xxxx-3000.<region>.devtunnels.ms）→ xxxx-8000.<region>.devtunnels.ms
- *  - それ以外（本番等） → NEXT_PUBLIC_API_URL（設定時）または 同ホストの :8000
- * これにより、ローカルでも Dev Tunnel 経由（別マシン）でも env の変更なしで動作します。
+ * ブラウザからは常にフロントと同一オリジンの "/api" を叩き、Next サーバが
+ * バックエンド（Laravel）へプロキシします（next.config.ts の rewrites）。
+ * これにより CORS 不要・単一ポートで、localhost でも VS Code Dev Tunnel
+ * （別マシンからのアクセス）でも env の変更なしでそのまま動作します。
  */
 
 const TOKEN_KEY = "base88_token";
 
-/** 実行時に API ベースURL（末尾 /api）を解決する */
+/** API ベースパス（同一オリジン、Next がバックエンドへプロキシ） */
 export function getApiBase(): string {
-  if (typeof window !== "undefined") {
-    const { protocol, hostname } = window.location;
-
-    // VS Code Dev Tunnel: "<id>-<port>.<region>.devtunnels.ms" のポート部を 8000 に差し替え
-    const tunnel = hostname.match(/^(.*-)\d+(\..+\.devtunnels\.ms)$/i);
-    if (tunnel) return `${protocol}//${tunnel[1]}8000${tunnel[2]}/api`;
-
-    // ローカル開発（フロントのポートに関わらず）→ バックエンドは :8000
-    if (hostname === "localhost" || hostname === "127.0.0.1") {
-      return `${protocol}//${hostname}:8000/api`;
-    }
-
-    // その他のホスト（本番等）: env 優先、無ければ同ホストの :8000
-    if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
-    return `${protocol}//${hostname}:8000/api`;
-  }
-  return process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api";
+  return "/api";
 }
 
 export function getToken(): string | null {
@@ -66,6 +49,7 @@ type ApiOptions = Omit<RequestInit, "body"> & { body?: unknown };
  */
 export async function api<T = unknown>(path: string, options: ApiOptions = {}): Promise<T> {
   const token = getToken();
+  const base = getApiBase();
   const headers: Record<string, string> = {
     Accept: "application/json",
     ...(options.headers as Record<string, string> | undefined),
@@ -82,7 +66,21 @@ export async function api<T = unknown>(path: string, options: ApiOptions = {}): 
   }
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch(`${getApiBase()}${path}`, { ...options, headers, body });
+  // 応答が返らずに無限ローディングにならないよう、タイムアウトを設ける。
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20000);
+
+  let res: Response;
+  try {
+    res = await fetch(`${base}${path}`, { ...options, headers, body, signal: controller.signal });
+  } catch (e) {
+    clearTimeout(timer);
+    if (e instanceof DOMException && e.name === "AbortError") {
+      throw new ApiError(0, { message: "サーバーに接続できませんでした（タイムアウト）。" }, "request timed out");
+    }
+    throw new ApiError(0, { message: "サーバーに接続できませんでした。" }, "network error");
+  }
+  clearTimeout(timer);
 
   const contentType = res.headers.get("content-type") ?? "";
   const payload = contentType.includes("application/json") ? await res.json() : await res.text();
