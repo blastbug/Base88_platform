@@ -99,41 +99,74 @@ export default function JobsPage() {
         ) : jobs.length === 0 ? (
           <EmptyState title="該当する案件がありません" description="検索条件を変更してお試しください。" />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="dtable">
-              <thead>
-                <tr>
-                  <th>引越予定日</th>
-                  <th>出発地 → 到着地</th>
-                  <th>荷物量 / 間取り</th>
-                  <th>希望金額</th>
-                  <th>募集状況</th>
-                  <th>締切日</th>
-                  <th className="text-right">詳細</th>
-                </tr>
-              </thead>
-              <tbody>
-                {jobs.map((job) => {
-                  const st = displayJobStatus(job.status, job.application_deadline);
-                  // 成約済み・完了は「すでに決まった案件」としてトーンを落として表示
-                  const settled = job.status === "contracted" || job.status === "completed";
-                  return (
-                    <tr key={job.id} className={settled ? "bg-ink-50/40 text-ink-400" : undefined}>
-                      <td className={`whitespace-nowrap font-medium ${settled ? "text-ink-400" : "text-ink-800"}`}>{formatDate(job.moving_date)}</td>
-                      <td className={`font-medium ${settled ? "text-ink-400" : "text-ink-800"}`}>{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</td>
-                      <td className={settled ? "text-ink-400" : "text-ink-600"}>{luggageLayout(job.layout, job.luggage_volume)}</td>
-                      <td className={`whitespace-nowrap font-semibold ${settled ? "text-ink-400" : "text-ink-800"}`}>{formatYen(job.desired_price)}</td>
-                      <td><Badge tone={st.tone}>{st.label}</Badge></td>
-                      <td className={`whitespace-nowrap ${settled ? "text-ink-400" : "text-ink-600"}`}>{shortDate(job.application_deadline)}</td>
-                      <td className="text-right">
-                        <Button size="sm" variant="secondary" onClick={() => router.push(`/jobs/${job.id}`)}>詳細</Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <>
+            {/* PC・タブレット: テーブル表示 */}
+            <div className="hidden overflow-x-auto md:block">
+              <table className="dtable">
+                <thead>
+                  <tr>
+                    <th>引越予定日</th>
+                    <th>出発地 → 到着地</th>
+                    <th>荷物量 / 間取り</th>
+                    <th>希望金額</th>
+                    <th>募集状況</th>
+                    <th>締切日</th>
+                    <th className="text-right">詳細</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {jobs.map((job) => {
+                    const st = displayJobStatus(job.status, job.application_deadline);
+                    // 成約済み・完了は「すでに決まった案件」としてトーンを落として表示
+                    const settled = job.status === "contracted" || job.status === "completed";
+                    return (
+                      <tr key={job.id} className={settled ? "bg-ink-50/40 text-ink-400" : undefined}>
+                        <td className={`whitespace-nowrap font-medium ${settled ? "text-ink-400" : "text-ink-800"}`}>{formatDate(job.moving_date)}</td>
+                        <td className={`font-medium ${settled ? "text-ink-400" : "text-ink-800"}`}>{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</td>
+                        <td className={settled ? "text-ink-400" : "text-ink-600"}>{luggageLayout(job.layout, job.luggage_volume)}</td>
+                        <td className={`whitespace-nowrap font-semibold ${settled ? "text-ink-400" : "text-ink-800"}`}>{formatYen(job.desired_price)}</td>
+                        <td><Badge tone={st.tone}>{st.label}</Badge></td>
+                        <td className={`whitespace-nowrap ${settled ? "text-ink-400" : "text-ink-600"}`}>{shortDate(job.application_deadline)}</td>
+                        <td className="text-right">
+                          <Button size="sm" variant="secondary" onClick={() => router.push(`/jobs/${job.id}`)}>詳細</Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* スマホ: カード表示（横スクロールで列が切れないように） */}
+            <ul className="divide-y divide-ink-100 md:hidden">
+              {jobs.map((job) => {
+                const st = displayJobStatus(job.status, job.application_deadline);
+                const settled = job.status === "contracted" || job.status === "completed";
+                return (
+                  <li key={job.id}>
+                    <button
+                      onClick={() => router.push(`/jobs/${job.id}`)}
+                      className={`block w-full px-4 py-3.5 text-left transition-colors hover:bg-ink-50 ${settled ? "bg-ink-50/40" : ""}`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <Badge tone={st.tone}>{st.label}</Badge>
+                        <span className="text-xs text-ink-400">締切 {shortDate(job.application_deadline)}</span>
+                      </div>
+                      <div className={`mt-2 font-semibold ${settled ? "text-ink-400" : "text-ink-800"}`}>
+                        {route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}
+                      </div>
+                      <div className="mt-1 flex items-end justify-between gap-3">
+                        <span className={`text-sm ${settled ? "text-ink-400" : "text-ink-500"}`}>
+                          {formatDate(job.moving_date)}・{luggageLayout(job.layout, job.luggage_volume)}
+                        </span>
+                        <span className={`shrink-0 font-bold ${settled ? "text-ink-400" : "text-ink-900"}`}>{formatYen(job.desired_price)}</span>
+                      </div>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         )}
       </SectionCard>
 
