@@ -47,13 +47,20 @@ export default function JobDetailPage() {
 
   if (loading) return <div className="flex justify-center py-24 text-brand-600"><Spinner className="h-8 w-8" /></div>;
   if (loadError) return <div className="card"><EmptyState title="読み込みに失敗しました" description={loadError} action={<Button variant="secondary" onClick={load}>再読み込み</Button>} /></div>;
-  if (forbidden) return <div className="card"><EmptyState title="この案件は閲覧できません" description="成約済みのため、関係会社（掲載会社・成約会社）以外は閲覧できません。" action={<Button variant="secondary" onClick={() => router.push("/jobs")}>案件一覧へ</Button>} /></div>;
+  if (forbidden) return <div className="card"><EmptyState title="この案件は閲覧できません" description="掲載が取り下げられた、またはアクセス権のない案件です。" action={<Button variant="secondary" onClick={() => router.push("/jobs")}>案件一覧へ</Button>} /></div>;
   if (notFound || !job) return <div className="card"><EmptyState title="案件が見つかりません" description="削除された、またはアクセス権のない案件です。" action={<Button variant="secondary" onClick={() => router.push("/jobs")}>案件一覧へ</Button>} /></div>;
 
   const st = displayJobStatus(job.status, job.application_deadline);
   // 「募集中」かつ締切前のみ応募可。締切超過・成約済み等はブラウズ用UIを出さない。
   const isOpen = job.status === "recruiting" && st.label !== "締切";
   const canApply = !job.is_owner && isOpen && !job.has_applied;
+  // 成約済み/完了/締切の案件で、掲載会社でも成約会社でもない閲覧者向けの状況説明
+  const settledMessage =
+    job.status === "contracted" ? "この案件は既に成約済みです。募集は終了しています。"
+    : job.status === "completed" ? "この案件は完了しています。"
+    : (job.status === "closed" || st.label === "締切") ? "この案件は募集を終了しています。"
+    : null;
+  const showSettledBanner = !job.is_owner && !job.is_winner && settledMessage !== null;
 
   return (
     <div className="animate-fade-in">
@@ -75,6 +82,12 @@ export default function JobDetailPage() {
         </div>
       )}
       {error && <div className="mb-5 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
+      {showSettledBanner && (
+        <div className="mb-5 flex items-center gap-2 rounded-lg border border-ink-200 bg-ink-50 px-4 py-3 text-sm text-ink-600">
+          <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-ink-400" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="9" /><path d="M12 8v4m0 4h.01" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          {settledMessage}
+        </div>
+      )}
 
       <div className="card p-6">
         {/* Header */}

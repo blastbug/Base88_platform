@@ -43,10 +43,15 @@ class JobController extends Controller
         if ($to = $request->query('date_to')) {
             $query->whereDate('moving_date', '<=', $to);
         }
-        // 公開マーケットは「募集中」「募集終了（締切）」のみ。
-        // 成約済み/完了/キャンセルは仕様§8「他社閲覧不可」により公開一覧に出さない
-        // （自社案件は /me/jobs、成約案件は /me/contracts で確認）。
-        $public = [MovingJob::STATUS_RECRUITING, MovingJob::STATUS_CLOSED];
+        // 公開一覧には成約済み・完了も「成約済み」と分かる形で掲載する（マーケットの透明性）。
+        // ただしキャンセル案件のみは公開一覧に出さない。顧客個人情報は別テーブルで
+        // 成約会社・掲載会社のみに限定（本メソッドでは一切含めない）。
+        $public = [
+            MovingJob::STATUS_RECRUITING,
+            MovingJob::STATUS_CLOSED,
+            MovingJob::STATUS_CONTRACTED,
+            MovingJob::STATUS_COMPLETED,
+        ];
         $status = $request->query('status');
         if ($status && in_array($status, $public, true)) {
             $query->where('status', $status);
@@ -79,15 +84,11 @@ class JobController extends Controller
             && JobContract::where('moving_job_id', $job->id)
                 ->where('winning_company_id', $companyId)->exists();
 
-        // 仕様§8: 成約と同時に「他社閲覧不可」。成約済み/完了/キャンセルの案件は
-        // 掲載会社・成約会社以外は詳細を閲覧できない（URL直打ちも遮断）。
-        $restricted = in_array($job->status, [
-            MovingJob::STATUS_CONTRACTED,
-            MovingJob::STATUS_COMPLETED,
-            MovingJob::STATUS_CANCELLED,
-        ], true);
-        if ($restricted && ! $isOwner && ! $isWinner) {
-            abort(403, 'この案件は成約済みのため、関係会社以外は閲覧できません。');
+        // 成約済み・完了は会員なら閲覧可（一覧に「成約済み」と表示するため）。
+        // 顧客個人情報は下の canViewCustomer で成約会社・掲載会社のみに限定。
+        // キャンセル案件だけは掲載会社以外に見せない（公開一覧にも出さない案件）。
+        if ($job->status === MovingJob::STATUS_CANCELLED && ! $isOwner) {
+            abort(403, 'この案件は現在閲覧できません。');
         }
 
         $job->load('company', 'media')->loadCount('applications');

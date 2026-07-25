@@ -16,8 +16,8 @@ export default function JobsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // applied filters
-  const [filters, setFilters] = useState({ prefecture: "", dateFrom: "", dateTo: "", status: "recruiting" });
+  // applied filters（既定は「すべて」＝募集中・募集終了・成約済・完了を表示）
+  const [filters, setFilters] = useState({ prefecture: "", dateFrom: "", dateTo: "", status: "" });
   // draft (form) filters
   const [draft, setDraft] = useState(filters);
 
@@ -48,7 +48,7 @@ export default function JobsPage() {
     setPage(1);
   }
   function reset() {
-    const cleared = { prefecture: "", dateFrom: "", dateTo: "", status: "recruiting" };
+    const cleared = { prefecture: "", dateFrom: "", dateTo: "", status: "" };
     setDraft(cleared);
     setFilters(cleared);
     setPage(1);
@@ -81,6 +81,8 @@ export default function JobsPage() {
               <option value="">すべて</option>
               <option value="recruiting">{JOB_STATUS_LABEL.recruiting}</option>
               <option value="closed">{JOB_STATUS_LABEL.closed}</option>
+              <option value="contracted">{JOB_STATUS_LABEL.contracted}</option>
+              <option value="completed">{JOB_STATUS_LABEL.completed}</option>
             </Select>
           </label>
           <div className="flex gap-2">
@@ -113,14 +115,16 @@ export default function JobsPage() {
               <tbody>
                 {jobs.map((job) => {
                   const st = displayJobStatus(job.status, job.application_deadline);
+                  // 成約済み・完了は「すでに決まった案件」としてトーンを落として表示
+                  const settled = job.status === "contracted" || job.status === "completed";
                   return (
-                    <tr key={job.id}>
-                      <td className="whitespace-nowrap font-medium text-ink-800">{formatDate(job.moving_date)}</td>
-                      <td className="font-medium text-ink-800">{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</td>
-                      <td className="text-ink-600">{luggageLayout(job.layout, job.luggage_volume)}</td>
-                      <td className="whitespace-nowrap font-semibold text-ink-800">{formatYen(job.desired_price)}</td>
+                    <tr key={job.id} className={settled ? "bg-ink-50/40 text-ink-400" : undefined}>
+                      <td className={`whitespace-nowrap font-medium ${settled ? "text-ink-400" : "text-ink-800"}`}>{formatDate(job.moving_date)}</td>
+                      <td className={`font-medium ${settled ? "text-ink-400" : "text-ink-800"}`}>{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</td>
+                      <td className={settled ? "text-ink-400" : "text-ink-600"}>{luggageLayout(job.layout, job.luggage_volume)}</td>
+                      <td className={`whitespace-nowrap font-semibold ${settled ? "text-ink-400" : "text-ink-800"}`}>{formatYen(job.desired_price)}</td>
                       <td><Badge tone={st.tone}>{st.label}</Badge></td>
-                      <td className="whitespace-nowrap text-ink-600">{shortDate(job.application_deadline)}</td>
+                      <td className={`whitespace-nowrap ${settled ? "text-ink-400" : "text-ink-600"}`}>{shortDate(job.application_deadline)}</td>
                       <td className="text-right">
                         <Button size="sm" variant="secondary" onClick={() => router.push(`/jobs/${job.id}`)}>詳細</Button>
                       </td>
