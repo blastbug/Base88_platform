@@ -291,10 +291,10 @@ function AnnouncementList({ items }: { items: AnnouncementItem[] }) {
 }
 
 const QUICK: { href: string; title: string; desc: string; card: string; tone: string; icon: ReactNode }[] = [
-  { href: "/jobs/new", title: "案件を投稿する", desc: "新しい案件を掲載します", card: "border-blue-100 bg-blue-50 hover:border-blue-300", tone: "bg-blue-100 text-blue-600", icon: <Svg className="h-4 w-4"><path d="M12 5v14M5 12h14" /></Svg> },
-  { href: "/jobs", title: "案件を検索する", desc: "募集中の案件を検索します", card: "border-emerald-100 bg-emerald-50 hover:border-emerald-300", tone: "bg-emerald-100 text-emerald-600", icon: <Svg className="h-4 w-4"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></Svg> },
-  { href: "/my/applications", title: "応募履歴を見る", desc: "自社の応募状況を確認します", card: "border-violet-100 bg-violet-50 hover:border-violet-300", tone: "bg-violet-100 text-violet-600", icon: <Svg className="h-4 w-4"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></Svg> },
-  { href: "/mypage", title: "マイページへ", desc: "会社情報や各種設定を行います", card: "border-orange-100 bg-orange-50 hover:border-orange-300", tone: "bg-orange-100 text-orange-600", icon: <Svg className="h-4 w-4"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /></Svg> },
+  { href: "/jobs/new", title: "案件を投稿する", desc: "新しい案件を掲載します", card: "border-blue-100 bg-blue-50/40 hover:bg-blue-50/70", tone: "bg-blue-100 text-blue-600", icon: <Svg className="h-4 w-4"><path d="M12 5v14M5 12h14" /></Svg> },
+  { href: "/jobs", title: "案件を検索する", desc: "募集中の案件を検索します", card: "border-emerald-100 bg-emerald-50/40 hover:bg-emerald-50/70", tone: "bg-emerald-100 text-emerald-600", icon: <Svg className="h-4 w-4"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></Svg> },
+  { href: "/my/applications", title: "応募履歴を見る", desc: "自社の応募状況を確認します", card: "border-violet-100 bg-violet-50/40 hover:bg-violet-50/70", tone: "bg-violet-100 text-violet-600", icon: <Svg className="h-4 w-4"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></Svg> },
+  { href: "/mypage", title: "マイページへ", desc: "会社情報や各種設定を行います", card: "border-orange-100 bg-orange-50/40 hover:bg-orange-50/70", tone: "bg-orange-100 text-orange-600", icon: <Svg className="h-4 w-4"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /></Svg> },
 ];
 function QuickActions() {
   return (
