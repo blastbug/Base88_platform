@@ -69,7 +69,7 @@ export default function ApplicantsPage() {
         ) : (
           <>
             {/* PC・タブレット: テーブル */}
-            <div className="hidden overflow-x-auto md:block">
+            <div className="mx-5 mb-5 mt-4 hidden overflow-x-auto rounded-lg border border-ink-200 md:block">
               <table className="dtable">
                 <thead>
                   <tr>

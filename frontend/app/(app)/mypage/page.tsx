@@ -129,7 +129,7 @@ export default function MyPage() {
                   </div>
                   {staffMsg && <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800">{staffMsg}</div>}
                   {/* PC・タブレット: テーブル */}
-                  <div className="hidden overflow-x-auto rounded-xl border border-ink-200 md:block">
+                  <div className="hidden overflow-x-auto rounded-lg border border-ink-200 md:block">
                     <table className="dtable">
                       <thead><tr><th>担当者名</th><th>メールアドレス</th><th>権限</th><th>状態</th>{isCompanyAdmin && <th className="text-right">操作</th>}</tr></thead>
                       <tbody>
