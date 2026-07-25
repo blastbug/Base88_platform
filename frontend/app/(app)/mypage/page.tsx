@@ -72,14 +72,14 @@ export default function MyPage() {
   useEffect(() => { loadCompany().finally(() => setLoading(false)); }, []);
 
   return (
-    <div className="animate-fade-in space-y-5">
+    <div className="animate-fade-in flex flex-1 flex-col space-y-5">
       {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
-      <SectionCard>
+      <SectionCard className="flex flex-1 flex-col">
         <div className="px-4 pt-2">
           <Tabs tabs={TABS} active={tab} onChange={setTab} />
         </div>
 
-        <div className="p-6">
+        <div className="flex-1 p-6">
           {loading ? (
             <div className="flex justify-center py-10 text-brand-600"><Spinner className="h-7 w-7" /></div>
           ) : (
