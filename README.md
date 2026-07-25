@@ -56,6 +56,12 @@ php artisan serve
 
 - **手早く動かす**: `.env` は既定で `DB_CONNECTION=sqlite`。Docker 不要でそのまま動きます。
 - **標準構成（PostgreSQL）**: `docker compose up -d` で DB を起動し、`.env` の PostgreSQL 行を有効化してください（`docker-compose.yml` と認証情報一致）。
+- **⚠️ 添付ファイルのアップロード（PHP設定・重要）**: 添付は最大10MBです。PHPの既定（`upload_max_filesize=2M` / `post_max_size=8M`）では**2MBを超える画像がアップロードに失敗**します。`php.ini` に以下を設定してください（設定後は `php artisan serve` を再起動。既存の `php -S` プロセスが残る場合は完全に終了させてから起動）:
+  ```ini
+  upload_max_filesize = 12M
+  post_max_size = 15M
+  ```
+  本番（nginx/Apache）では Web サーバ側の `client_max_body_size`（nginx）等も合わせて調整してください。
 
 初期アカウント（seeder 投入）:
 
