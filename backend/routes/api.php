@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AnnouncementController;
 use App\Http\Controllers\Api\ApplicationController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
@@ -18,6 +19,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
 
     Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::get('/announcements', [AnnouncementController::class, 'index']);
 
     // 案件（発注・受注 共通の閲覧／発注操作）
     Route::get('/jobs', [JobController::class, 'index']);

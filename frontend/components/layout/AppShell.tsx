@@ -4,6 +4,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
+import { api } from "@/lib/api";
+import { formatDate } from "@/lib/format";
+import type { AnnouncementItem } from "@/lib/types";
 
 interface NavItem {
   href: string;
@@ -47,14 +50,22 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
   const [drawer, setDrawer] = useState(false);
   const [menu, setMenu] = useState(false);
+  const [bell, setBell] = useState(false);
+  const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
   const menuRef = useRef<HTMLDivElement>(null);
+  const bellRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenu(false);
+      if (bellRef.current && !bellRef.current.contains(e.target as Node)) setBell(false);
     }
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  useEffect(() => {
+    api<{ data: AnnouncementItem[] }>("/announcements").then((r) => setAnnouncements(r.data)).catch(() => {});
   }, []);
 
   async function handleLogout() {
@@ -120,22 +131,56 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-3">
-          <button className="rounded-lg p-2 text-ink-500 transition-colors hover:bg-ink-100 hover:text-ink-700" aria-label="通知">
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          </button>
+          {/* 通知ベル */}
+          <div className="relative" ref={bellRef}>
+            <button onClick={() => setBell((v) => !v)} className="relative rounded-lg p-2 text-ink-500 transition-colors hover:bg-ink-100 hover:text-ink-700" aria-label="通知">
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              {announcements.length > 0 && (
+                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white">{announcements.length}</span>
+              )}
+            </button>
+            {bell && (
+              <div className="absolute right-0 mt-2 w-80 overflow-hidden rounded-xl border border-ink-200 bg-white shadow-lg">
+                <div className="border-b border-ink-100 px-4 py-3 text-sm font-bold text-ink-800">お知らせ</div>
+                {announcements.length === 0 ? (
+                  <div className="px-4 py-8 text-center text-sm text-ink-500">新しいお知らせはありません</div>
+                ) : (
+                  <ul className="max-h-96 divide-y divide-ink-100 overflow-y-auto">
+                    {announcements.map((a) => (
+                      <li key={a.id} className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-ink-400">{formatDate(a.published_at)}</span>
+                          {a.level === "important" ? (
+                            <span className="inline-flex items-center rounded bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-600 ring-1 ring-inset ring-rose-200">重要</span>
+                          ) : (
+                            <span className="inline-flex items-center rounded bg-brand-50 px-1.5 py-0.5 text-[10px] font-bold text-brand-600 ring-1 ring-inset ring-brand-200">お知らせ</span>
+                          )}
+                        </div>
+                        <div className="mt-0.5 text-sm font-semibold text-ink-800">{a.title}</div>
+                        <div className="mt-0.5 line-clamp-2 text-xs text-ink-500">{a.body}</div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <Link href="/dashboard" onClick={() => setBell(false)} className="block border-t border-ink-100 px-4 py-2.5 text-center text-sm font-semibold text-brand-600 hover:bg-ink-50">すべて見る</Link>
+              </div>
+            )}
+          </div>
+
+          {/* ユーザーメニュー */}
           <div className="relative" ref={menuRef}>
-            <button onClick={() => setMenu((v) => !v)} className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-ink-50">
-              <span className="hidden text-right sm:block">
-                <span className="block text-xs text-ink-500">{user?.company?.name ?? "—"}</span>
+            <button onClick={() => setMenu((v) => !v)} className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 hover:bg-ink-50">
+              <span className="hidden text-right leading-tight sm:block">
+                <span className="block text-sm font-semibold text-ink-800">{user?.company?.name ?? "—"}</span>
+                <span className="block text-xs text-ink-500">{user?.name}</span>
               </span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white">
-                {user?.name?.charAt(0) ?? "?"}
+              <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-ink-100 text-ink-400">
+                <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-3.31 0-8 1.67-8 5v1h16v-1c0-3.33-4.69-5-8-5Z" /></svg>
               </span>
-              <span className="hidden text-sm font-medium text-ink-700 sm:block">{user?.name}</span>
               <svg viewBox="0 0 24 24" className="h-4 w-4 text-ink-400" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </button>
             {menu && (
-              <div className="absolute right-0 mt-2 w-52 overflow-hidden rounded-xl border border-ink-200 bg-white py-1 shadow-lg">
+              <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-ink-200 bg-white py-1 shadow-lg">
                 <div className="border-b border-ink-100 px-4 py-3">
                   <div className="text-sm font-semibold text-ink-800">{user?.name}</div>
                   <div className="truncate text-xs text-ink-500">{user?.email}</div>
