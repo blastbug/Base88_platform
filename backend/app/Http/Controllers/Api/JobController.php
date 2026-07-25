@@ -237,6 +237,8 @@ class JobController extends Controller
             report($e);
         }
 
+        activity('operation')->causedBy($request->user())->performedOn($job)->event('contracted')->log('成約を決定');
+
         return response()->json(['message' => '成約処理が完了しました。']);
     }
 
@@ -248,6 +250,7 @@ class JobController extends Controller
             throw ValidationException::withMessages(['status' => ['成約済みの案件のみ完了登録できます。']]);
         }
         $job->update(['status' => MovingJob::STATUS_COMPLETED]);
+        activity('operation')->causedBy($request->user())->performedOn($job)->event('completed')->log('案件を完了登録');
 
         return response()->json(['message' => '案件を完了にしました。']);
     }
@@ -260,6 +263,7 @@ class JobController extends Controller
             throw ValidationException::withMessages(['status' => ['この案件はキャンセルできません。']]);
         }
         $job->update(['status' => MovingJob::STATUS_CANCELLED]);
+        activity('operation')->causedBy($request->user())->performedOn($job)->event('cancelled')->log('案件をキャンセル');
 
         return response()->json(['message' => '案件をキャンセルしました。']);
     }

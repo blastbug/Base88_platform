@@ -65,6 +65,7 @@ class CompaniesTable
                         } catch (\Throwable $e) {
                             report($e);
                         }
+                        activity('operation')->causedBy(auth()->user())->performedOn($r)->event('approved')->log('加盟会社を承認');
                     }),
                 Action::make('suspend')
                     ->label('停止')
@@ -73,7 +74,10 @@ class CompaniesTable
                     ->visible(fn (Company $r) => $r->status === Company::STATUS_APPROVED)
                     ->requiresConfirmation()
                     ->modalHeading('加盟会社を利用停止')
-                    ->action(fn (Company $r) => $r->update(['status' => Company::STATUS_SUSPENDED])),
+                    ->action(function (Company $r) {
+                        $r->update(['status' => Company::STATUS_SUSPENDED]);
+                        activity('operation')->causedBy(auth()->user())->performedOn($r)->event('suspended')->log('加盟会社を利用停止');
+                    }),
             ])
             ->defaultSort('created_at', 'desc');
     }
