@@ -105,7 +105,7 @@ class DashboardController extends Controller
                 }
             });
 
-        return $items->sortByDesc('at')->take(6)->map(fn ($i) => [
+        return $items->sortByDesc('at')->take(5)->map(fn ($i) => [
             'type' => $i['type'],
             'text' => $i['text'],
             'job_id' => $i['job_id'],
