@@ -266,11 +266,11 @@ function ActivityList({ items }: { items: ActivityItem[] }) {
 }
 
 function AnnouncementList({ items }: { items: AnnouncementItem[] }) {
-  if (items.length === 0) return <div className="px-5 py-10 text-center text-sm text-ink-500">現在お知らせはありません。</div>;
+  if (items.length === 0) return <div className="py-10 text-center text-sm text-ink-500">現在お知らせはありません。</div>;
   return (
-    <ul className="divide-y divide-ink-200">
+    <div className="space-y-2.5">
       {items.map((a) => (
-        <li key={a.id} className="flex items-start gap-3 py-4">
+        <div key={a.id} className="flex items-start gap-3 rounded-xl border border-ink-200 p-4 transition-colors hover:border-ink-300">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="text-xs text-ink-400">{formatDate(a.published_at)}</span>
@@ -283,30 +283,30 @@ function AnnouncementList({ items }: { items: AnnouncementItem[] }) {
             <div className="mt-1 text-sm font-semibold text-ink-800">{a.title}</div>
             <div className="mt-0.5 line-clamp-1 text-xs text-ink-500">{a.body}</div>
           </div>
-          <Ic d={CHEVRON} className="mt-1 h-4 w-4 shrink-0 text-ink-300" />
-        </li>
+          <Ic d={CHEVRON} className="mt-0.5 h-4 w-4 shrink-0 text-ink-300" />
+        </div>
       ))}
-    </ul>
+    </div>
   );
 }
 
-const QUICK: { href: string; title: string; desc: string; tone: string; icon: ReactNode }[] = [
-  { href: "/jobs/new", title: "案件を投稿する", desc: "新しい案件を掲載します", tone: "bg-blue-50 text-blue-600", icon: <Svg className="h-4 w-4"><path d="M12 5v14M5 12h14" /></Svg> },
-  { href: "/jobs", title: "案件を検索する", desc: "募集中の案件を検索します", tone: "bg-emerald-50 text-emerald-600", icon: <Svg className="h-4 w-4"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></Svg> },
-  { href: "/my/applications", title: "応募履歴を見る", desc: "自社の応募状況を確認します", tone: "bg-violet-50 text-violet-600", icon: <Svg className="h-4 w-4"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></Svg> },
-  { href: "/mypage", title: "マイページへ", desc: "会社情報や各種設定を行います", tone: "bg-orange-50 text-orange-600", icon: <Svg className="h-4 w-4"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /></Svg> },
+const QUICK: { href: string; title: string; desc: string; card: string; tone: string; icon: ReactNode }[] = [
+  { href: "/jobs/new", title: "案件を投稿する", desc: "新しい案件を掲載します", card: "border-blue-100 bg-blue-50 hover:border-blue-300", tone: "bg-blue-100 text-blue-600", icon: <Svg className="h-4 w-4"><path d="M12 5v14M5 12h14" /></Svg> },
+  { href: "/jobs", title: "案件を検索する", desc: "募集中の案件を検索します", card: "border-emerald-100 bg-emerald-50 hover:border-emerald-300", tone: "bg-emerald-100 text-emerald-600", icon: <Svg className="h-4 w-4"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></Svg> },
+  { href: "/my/applications", title: "応募履歴を見る", desc: "自社の応募状況を確認します", card: "border-violet-100 bg-violet-50 hover:border-violet-300", tone: "bg-violet-100 text-violet-600", icon: <Svg className="h-4 w-4"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></Svg> },
+  { href: "/mypage", title: "マイページへ", desc: "会社情報や各種設定を行います", card: "border-orange-100 bg-orange-50 hover:border-orange-300", tone: "bg-orange-100 text-orange-600", icon: <Svg className="h-4 w-4"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" /><path d="M14 2v4a2 2 0 0 0 2 2h4" /></Svg> },
 ];
 function QuickActions() {
   return (
     <div className="space-y-2.5">
       {QUICK.map((q) => (
-        <Link key={q.href} href={q.href} className="flex items-center gap-3 rounded-xl border border-ink-200 px-3.5 py-3 transition-colors hover:border-brand-300 hover:bg-brand-50/40">
+        <Link key={q.href} href={q.href} className={`flex items-center gap-3 rounded-xl border px-3.5 py-3 transition-colors ${q.card}`}>
           <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${q.tone}`}>{q.icon}</span>
           <div className="min-w-0 flex-1">
             <div className="text-sm font-semibold text-ink-800">{q.title}</div>
             <div className="text-xs text-ink-500">{q.desc}</div>
           </div>
-          <Ic d={CHEVRON} className="h-4 w-4 shrink-0 text-ink-300" />
+          <Ic d={CHEVRON} className="h-4 w-4 shrink-0 text-ink-400" />
         </Link>
       ))}
     </div>
