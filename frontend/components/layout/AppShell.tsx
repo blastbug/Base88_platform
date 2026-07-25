@@ -148,8 +148,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         </header>
 
         <main className="min-w-0 flex-1">
-          {/* コンテンツ領域はヘッダー下の高さを最低限満たす。短いページでも中央に潰れず画面を埋める。 */}
-          <div className="mx-auto flex min-h-[calc(100dvh-4.5rem)] max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">{children}</div>
+          {/* コンテンツ領域は表示領域の全幅を使う（左右の余白は px のみ）。ヘッダー下の高さも満たす。 */}
+          <div className="flex min-h-[calc(100dvh-4.5rem)] w-full flex-col px-4 py-6 sm:px-6 lg:px-8">{children}</div>
         </main>
       </div>
     </div>
