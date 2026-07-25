@@ -41,5 +41,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me/company', [MeController::class, 'company']);
     Route::put('/me/company', [MeController::class, 'updateCompany']);
     Route::get('/me/staff', [MeController::class, 'staff']);
+    Route::post('/me/staff', [MeController::class, 'createStaff']);
+    Route::patch('/me/staff/{user}/active', [MeController::class, 'toggleStaff']);
     Route::put('/me/password', [MeController::class, 'updatePassword']);
+    Route::post('/me/withdraw', [MeController::class, 'withdraw']);
 });

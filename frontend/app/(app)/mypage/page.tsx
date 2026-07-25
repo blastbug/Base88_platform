@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { Badge, Button, Field, Input, SectionCard, Spinner, Tabs } from "@/components/ui";
+import { Badge, Button, Field, Input, SectionCard, Select, Spinner, Tabs } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 
 interface CompanyDetail {
@@ -23,13 +24,36 @@ const TABS = [
 ];
 
 export default function MyPage() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const router = useRouter();
   const [tab, setTab] = useState("company");
   const [company, setCompany] = useState<CompanyDetail | null>(null);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [addStaffOpen, setAddStaffOpen] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [staffMsg, setStaffMsg] = useState<string | null>(null);
+  const isCompanyAdmin = user?.role === "company_admin";
+
+  async function toggleStaff(s: Staff) {
+    setStaffMsg(null);
+    if (!confirm(`${s.name} を${s.is_active ? "停止" : "有効化"}しますか？`)) return;
+    try {
+      const res = await api<{ message: string }>(`/me/staff/${s.id}/active`, { method: "PATCH" });
+      setStaffMsg(res.message);
+      await loadCompany();
+    } catch {
+      setStaffMsg("状態の変更に失敗しました。");
+    }
+  }
+
+  async function handleWithdraw() {
+    await api("/me/withdraw", { method: "POST" });
+    await logout();
+    router.replace("/login");
+  }
 
   async function loadCompany() {
     try {
@@ -61,6 +85,7 @@ export default function MyPage() {
           ) : (
             <>
               {tab === "company" && (
+                <div className="space-y-6">
                 <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
                   <div className="rounded-xl border border-ink-200">
                     <div className="flex items-center justify-between border-b border-ink-100 px-5 py-3">
@@ -83,23 +108,50 @@ export default function MyPage() {
                     </dl>
                   </div>
                 </div>
+
+                {isCompanyAdmin && (
+                  <div className="rounded-xl border border-rose-200 bg-rose-50/40">
+                    <div className="border-b border-rose-100 px-5 py-3"><h3 className="text-sm font-bold text-rose-700">退会</h3></div>
+                    <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+                      <p className="text-sm text-ink-600">退会すると加盟会社アカウントは利用停止となり、担当者はログインできなくなります。</p>
+                      <Button variant="danger" onClick={() => setWithdrawOpen(true)}>退会する</Button>
+                    </div>
+                  </div>
+                )}
+                </div>
               )}
 
               {tab === "staff" && (
-                <div className="overflow-x-auto rounded-xl border border-ink-200">
-                  <table className="dtable">
-                    <thead><tr><th>担当者名</th><th>メールアドレス</th><th>権限</th><th>状態</th></tr></thead>
-                    <tbody>
-                      {staff.map((s) => (
-                        <tr key={s.id}>
-                          <td className="font-medium text-ink-800">{s.name}</td>
-                          <td className="text-ink-600">{s.email}</td>
-                          <td><Badge tone="bg-brand-50 text-brand-700 ring-brand-600/20">{ROLE_LABEL[s.role] ?? s.role}</Badge></td>
-                          <td>{s.is_active ? <Badge tone="bg-emerald-50 text-emerald-700 ring-emerald-600/20">有効</Badge> : <Badge tone="bg-ink-100 text-ink-500 ring-ink-500/20">停止</Badge>}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-ink-500">自社の担当者アカウントを管理します。</p>
+                    {isCompanyAdmin && <Button size="sm" onClick={() => { setStaffMsg(null); setAddStaffOpen(true); }}>＋ 担当者を追加</Button>}
+                  </div>
+                  {staffMsg && <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800">{staffMsg}</div>}
+                  <div className="overflow-x-auto rounded-xl border border-ink-200">
+                    <table className="dtable">
+                      <thead><tr><th>担当者名</th><th>メールアドレス</th><th>権限</th><th>状態</th>{isCompanyAdmin && <th className="text-right">操作</th>}</tr></thead>
+                      <tbody>
+                        {staff.map((s) => (
+                          <tr key={s.id}>
+                            <td className="font-medium text-ink-800">{s.name}{s.id === user?.id && <span className="ml-2 text-xs text-ink-400">(あなた)</span>}</td>
+                            <td className="text-ink-600">{s.email}</td>
+                            <td><Badge tone="bg-brand-50 text-brand-700 ring-brand-600/20">{ROLE_LABEL[s.role] ?? s.role}</Badge></td>
+                            <td>{s.is_active ? <Badge tone="bg-emerald-50 text-emerald-700 ring-emerald-600/20">有効</Badge> : <Badge tone="bg-ink-100 text-ink-500 ring-ink-500/20">停止</Badge>}</td>
+                            {isCompanyAdmin && (
+                              <td className="text-right">
+                                {s.id !== user?.id && (
+                                  <Button size="sm" variant={s.is_active ? "danger" : "secondary"} onClick={() => toggleStaff(s)}>
+                                    {s.is_active ? "停止" : "有効化"}
+                                  </Button>
+                                )}
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
 
@@ -118,6 +170,88 @@ export default function MyPage() {
       </SectionCard>
 
       {editOpen && company && <EditCompanyModal company={company} onClose={() => setEditOpen(false)} onSaved={async () => { setEditOpen(false); await loadCompany(); }} />}
+      {addStaffOpen && <AddStaffModal onClose={() => setAddStaffOpen(false)} onAdded={async (msg) => { setAddStaffOpen(false); setStaffMsg(msg); await loadCompany(); }} />}
+      {withdrawOpen && <WithdrawModal companyName={company?.name ?? ""} onClose={() => setWithdrawOpen(false)} onConfirm={handleWithdraw} />}
+    </div>
+  );
+}
+
+function AddStaffModal({ onClose, onAdded }: { onClose: () => void; onAdded: (msg: string) => void }) {
+  const [form, setForm] = useState({ name: "", email: "", role: "staff" });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await api<{ message: string }>("/me/staff", { method: "POST", body: form });
+      onAdded(res.message);
+    } catch (err) {
+      const m = err instanceof ApiError ? ((err.body as { errors?: Record<string, string[]>; message?: string }).errors?.email?.[0] ?? (err.body as { message?: string }).message) : null;
+      setError(m ?? "追加に失敗しました。");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <form onSubmit={save} className="relative my-auto max-h-[90dvh] w-full max-w-md space-y-4 overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+        <h3 className="text-lg font-bold text-ink-900">担当者を追加</h3>
+        <p className="text-xs text-ink-500">追加した担当者にはパスワード設定用の招待メールが送信されます。</p>
+        {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700">{error}</div>}
+        <Field label="担当者名" required><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required placeholder="山田 太郎" /></Field>
+        <Field label="メールアドレス" required><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required placeholder="staff@company.co.jp" /></Field>
+        <Field label="権限" required>
+          <Select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
+            <option value="staff">一般担当者</option>
+            <option value="company_admin">会社管理者</option>
+          </Select>
+        </Field>
+        <div className="flex justify-end gap-3 pt-2">
+          <Button type="button" variant="secondary" onClick={onClose}>キャンセル</Button>
+          <Button type="submit" loading={busy}>追加して招待</Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function WithdrawModal({ companyName, onClose, onConfirm }: { companyName: string; onClose: () => void; onConfirm: () => Promise<void> }) {
+  const [confirmText, setConfirmText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit() {
+    setBusy(true);
+    setError(null);
+    try {
+      await onConfirm();
+    } catch {
+      setError("退会手続きに失敗しました。時間をおいて再度お試しください。");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative my-auto max-h-[90dvh] w-full max-w-md space-y-4 overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+        <h3 className="text-lg font-bold text-rose-700">退会の確認</h3>
+        <p className="text-sm text-ink-600">
+          退会すると、<span className="font-semibold">{companyName}</span> の加盟会社アカウントは利用停止となり、すべての担当者がログインできなくなります。この操作は元に戻せません。
+        </p>
+        <p className="text-sm text-ink-600">続行するには <span className="font-mono font-bold">退会する</span> と入力してください。</p>
+        {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700">{error}</div>}
+        <Input value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="退会する" />
+        <div className="flex justify-end gap-3 pt-2">
+          <Button type="button" variant="secondary" onClick={onClose}>キャンセル</Button>
+          <Button variant="danger" loading={busy} disabled={confirmText !== "退会する"} onClick={submit}>退会を確定する</Button>
+        </div>
+      </div>
     </div>
   );
 }
