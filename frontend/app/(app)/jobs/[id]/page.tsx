@@ -15,6 +15,7 @@ export default function JobDetailPage() {
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [forbidden, setForbidden] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [banner, setBanner] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +29,7 @@ export default function JobDetailPage() {
       setJob(res.data);
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) setNotFound(true);
+      else if (err instanceof ApiError && err.status === 403) setForbidden(true);
       else setLoadError("案件の読み込みに失敗しました。時間をおいて再度お試しください。");
     } finally {
       setLoading(false);
@@ -45,10 +47,13 @@ export default function JobDetailPage() {
 
   if (loading) return <div className="flex justify-center py-24 text-brand-600"><Spinner className="h-8 w-8" /></div>;
   if (loadError) return <div className="card"><EmptyState title="読み込みに失敗しました" description={loadError} action={<Button variant="secondary" onClick={load}>再読み込み</Button>} /></div>;
+  if (forbidden) return <div className="card"><EmptyState title="この案件は閲覧できません" description="成約済みのため、関係会社（掲載会社・成約会社）以外は閲覧できません。" action={<Button variant="secondary" onClick={() => router.push("/jobs")}>案件一覧へ</Button>} /></div>;
   if (notFound || !job) return <div className="card"><EmptyState title="案件が見つかりません" description="削除された、またはアクセス権のない案件です。" action={<Button variant="secondary" onClick={() => router.push("/jobs")}>案件一覧へ</Button>} /></div>;
 
   const st = displayJobStatus(job.status, job.application_deadline);
-  const canApply = !job.is_owner && job.status === "recruiting" && !job.has_applied;
+  // 「募集中」かつ締切前のみ応募可。締切超過・成約済み等はブラウズ用UIを出さない。
+  const isOpen = job.status === "recruiting" && st.label !== "締切";
+  const canApply = !job.is_owner && isOpen && !job.has_applied;
 
   return (
     <div className="animate-fade-in">
@@ -133,7 +138,12 @@ export default function JobDetailPage() {
               <OwnerActions job={job} onChanged={load} setError={setError} />
               <LinkButton href={`/my/jobs/${job.id}/applications`}>応募者一覧を見る</LinkButton>
             </>
-          ) : (
+          ) : job.is_winner ? (
+            <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800">
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              貴社が受注した案件です
+            </div>
+          ) : isOpen ? (
             <>
               <Button variant="secondary">
                 <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 21s-7-4.5-9.5-9A5 5 0 0 1 12 6a5 5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -141,12 +151,14 @@ export default function JobDetailPage() {
               </Button>
               {canApply ? (
                 <Button onClick={() => setApplyOpen(true)}>応募する</Button>
-              ) : job.has_applied ? (
-                <Badge tone="bg-emerald-50 text-emerald-700 ring-emerald-600/20">応募済み</Badge>
               ) : (
-                <span className="text-sm text-ink-500">募集を終了しています</span>
+                <Badge tone="bg-emerald-50 text-emerald-700 ring-emerald-600/20">応募済み</Badge>
               )}
             </>
+          ) : (
+            <span className="text-sm text-ink-500">
+              {job.has_applied ? "この案件は募集を終了しています（応募済み）" : "この案件の募集は終了しています"}
+            </span>
           )}
         </div>
       </div>

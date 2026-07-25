@@ -43,11 +43,15 @@ class JobController extends Controller
         if ($to = $request->query('date_to')) {
             $query->whereDate('moving_date', '<=', $to);
         }
-        if ($status = $request->query('status')) {
+        // 公開マーケットは「募集中」「募集終了（締切）」のみ。
+        // 成約済み/完了/キャンセルは仕様§8「他社閲覧不可」により公開一覧に出さない
+        // （自社案件は /me/jobs、成約案件は /me/contracts で確認）。
+        $public = [MovingJob::STATUS_RECRUITING, MovingJob::STATUS_CLOSED];
+        $status = $request->query('status');
+        if ($status && in_array($status, $public, true)) {
             $query->where('status', $status);
         } else {
-            // 既定では募集中のみ
-            $query->where('status', MovingJob::STATUS_RECRUITING);
+            $query->whereIn('status', $public);
         }
 
         $jobs = $query->paginate(12);
@@ -68,15 +72,34 @@ class JobController extends Controller
     public function show(Request $request, MovingJob $job): JsonResponse
     {
         $user = $request->user();
+        $companyId = $user->company_id;
+
+        $isOwner = $job->company_id === $companyId;
+        $isWinner = in_array($job->status, [MovingJob::STATUS_CONTRACTED, MovingJob::STATUS_COMPLETED], true)
+            && JobContract::where('moving_job_id', $job->id)
+                ->where('winning_company_id', $companyId)->exists();
+
+        // 仕様§8: 成約と同時に「他社閲覧不可」。成約済み/完了/キャンセルの案件は
+        // 掲載会社・成約会社以外は詳細を閲覧できない（URL直打ちも遮断）。
+        $restricted = in_array($job->status, [
+            MovingJob::STATUS_CONTRACTED,
+            MovingJob::STATUS_COMPLETED,
+            MovingJob::STATUS_CANCELLED,
+        ], true);
+        if ($restricted && ! $isOwner && ! $isWinner) {
+            abort(403, 'この案件は成約済みのため、関係会社以外は閲覧できません。');
+        }
+
         $job->load('company', 'media')->loadCount('applications');
 
-        $canViewCustomer = $this->canViewCustomer($job, $user->company_id);
+        $canViewCustomer = $this->canViewCustomer($job, $companyId);
         if ($canViewCustomer) {
             $job->load('customerDetail');
         }
         $job->canViewCustomer = $canViewCustomer;
         $job->has_applied = JobApplication::where('moving_job_id', $job->id)
-            ->where('company_id', $user->company_id)->exists();
+            ->where('company_id', $companyId)->exists();
+        $job->is_winner = $isWinner;
 
         return (new MovingJobResource($job))->response();
     }

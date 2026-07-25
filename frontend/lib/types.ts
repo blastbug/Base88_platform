@@ -53,6 +53,7 @@ export interface Job {
   application_deadline: string | null;
   applications_count?: number;
   has_applied?: boolean;
+  is_winner?: boolean;
   created_at?: string;
   attachments?: Attachment[];
   customer?: CustomerInfo;

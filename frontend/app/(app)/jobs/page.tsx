@@ -80,8 +80,7 @@ export default function JobsPage() {
             <Select value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value })}>
               <option value="">すべて</option>
               <option value="recruiting">{JOB_STATUS_LABEL.recruiting}</option>
-              <option value="contracted">{JOB_STATUS_LABEL.contracted}</option>
-              <option value="completed">{JOB_STATUS_LABEL.completed}</option>
+              <option value="closed">{JOB_STATUS_LABEL.closed}</option>
             </Select>
           </label>
           <div className="flex gap-2">

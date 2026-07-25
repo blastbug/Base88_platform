@@ -44,6 +44,8 @@ class MovingJobResource extends JsonResource
             'application_deadline' => optional($this->application_deadline)->toIso8601String(),
             'applications_count' => $this->when(isset($this->applications_count), $this->applications_count),
             'has_applied' => $this->when(isset($this->resource->has_applied), fn () => (bool) $this->resource->has_applied),
+            // 自社が成約した（受注した）案件か。詳細取得時のみ付与。
+            'is_winner' => $this->when(isset($this->resource->is_winner), fn () => (bool) $this->resource->is_winner),
             'created_at' => optional($this->created_at)->toIso8601String(),
 
             // 添付ファイル（詳細取得時のみ。相対URLでフロントの /storage プロキシ経由）
