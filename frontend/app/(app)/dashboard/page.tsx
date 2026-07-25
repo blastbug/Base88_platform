@@ -65,7 +65,7 @@ export default function DashboardPage() {
     <div className="animate-fade-in space-y-6">
       {/* 概要 */}
       <section className="card p-5">
-        <SectionHead title="概要" href="/jobs" />
+        <CardHead title="概要" href="/jobs" />
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard tone="bg-blue-50 text-blue-600" label="募集中の案件" value={data.stats.recruiting} delta={data.deltas.recruiting} icon={IconFolder} />
           <StatCard tone="bg-emerald-50 text-emerald-600" label="自社掲載中の案件" value={data.stats.my_posted} delta={data.deltas.my_posted} icon={IconFile} />
@@ -78,21 +78,27 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           {/* 新着案件 */}
-          <section className="card">
-            <SectionHead title="新着案件" href="/jobs" padded />
-            <NewJobsTable jobs={recentJobs} router={router} />
+          <section className="card p-5">
+            <CardHead title="新着案件" href="/jobs" />
+            <div className="mt-4">
+              <NewJobsTable jobs={recentJobs} router={router} />
+            </div>
           </section>
 
           {/* 自社掲載中 + 最近の活動 */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <section className="card">
-              <SectionHead title="自社掲載中の案件" href="/my/jobs" padded />
-              <MyJobsList jobs={myJobs} router={router} />
+            <section className="card p-5">
+              <CardHead title="自社掲載中の案件" href="/my/jobs" />
+              <div className="mt-4">
+                <MyJobsList jobs={myJobs} router={router} />
+              </div>
             </section>
-            <section className="card flex flex-col">
-              <div className="border-b border-ink-100 px-5 py-4"><h2 className="text-base font-bold text-ink-900">最近の活動</h2></div>
-              <ActivityList items={data.activities} />
-              <div className="mt-auto border-t border-ink-100 px-5 py-3">
+            <section className="card flex flex-col p-5">
+              <CardHead title="最近の活動" />
+              <div className="mt-2 flex-1">
+                <ActivityList items={data.activities} />
+              </div>
+              <div className="mt-3 border-t border-ink-100 pt-3">
                 <Link href="/my/jobs" className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700">
                   すべての活動を表示 <Ic d={CHEVRON} className="h-3.5 w-3.5" />
                 </Link>
@@ -103,13 +109,17 @@ export default function DashboardPage() {
 
         {/* right rail */}
         <div className="space-y-6">
-          <section className="card">
-            <div className="border-b border-ink-100 px-5 py-4"><h2 className="text-base font-bold text-ink-900">お知らせ</h2></div>
-            <AnnouncementList items={data.announcements} />
+          <section className="card p-5">
+            <CardHead title="お知らせ" />
+            <div className="mt-2">
+              <AnnouncementList items={data.announcements} />
+            </div>
           </section>
-          <section className="card">
-            <div className="border-b border-ink-100 px-5 py-4"><h2 className="text-base font-bold text-ink-900">クイックアクション</h2></div>
-            <QuickActions />
+          <section className="card p-5">
+            <CardHead title="クイックアクション" />
+            <div className="mt-2">
+              <QuickActions />
+            </div>
           </section>
         </div>
       </div>
@@ -118,9 +128,9 @@ export default function DashboardPage() {
 }
 
 /* ---------- components ---------- */
-function SectionHead({ title, href, padded }: { title: string; href?: string; padded?: boolean }) {
+function CardHead({ title, href }: { title: string; href?: string }) {
   return (
-    <div className={padded ? "flex items-center justify-between border-b border-ink-100 px-5 py-4" : "flex items-center justify-between"}>
+    <div className="flex items-center justify-between">
       <h2 className="text-base font-bold text-ink-900">{title}</h2>
       {href && (
         <Link href={href} className="inline-flex items-center gap-0.5 text-sm font-semibold text-brand-600 hover:text-brand-700">
@@ -155,18 +165,20 @@ function StatusPill({ tone, label }: { tone: string; label: string }) {
 }
 
 function NewJobsTable({ jobs, router }: { jobs: Job[]; router: Nav }) {
-  if (jobs.length === 0) return <div className="px-5 py-12 text-center text-sm text-ink-500">現在募集中の案件はありません。</div>;
+  if (jobs.length === 0) return <div className="py-12 text-center text-sm text-ink-500">現在募集中の案件はありません。</div>;
+  const th = "bg-ink-50 px-4 py-2.5 text-left text-xs font-semibold text-ink-500";
+  const td = "border-b border-ink-100 px-4 py-3.5 align-middle";
   return (
     <div className="overflow-x-auto">
-      <table className="dtable">
+      <table className="w-full border-separate border-spacing-0 text-sm [&_tbody_tr:last-child_td]:border-b-0">
         <thead>
           <tr>
-            <th>引越予定日</th>
-            <th>出発地 → 到着地</th>
-            <th>荷物量 / 間取り</th>
-            <th>募集状況</th>
-            <th>締切日</th>
-            <th className="text-right">操作</th>
+            <th className={`${th} rounded-l-lg`}>引越予定日</th>
+            <th className={th}>出発地 → 到着地</th>
+            <th className={th}>荷物量 / 間取り</th>
+            <th className={th}>募集状況</th>
+            <th className={th}>締切日</th>
+            <th className={`${th} rounded-r-lg text-right`}>操作</th>
           </tr>
         </thead>
         <tbody>
@@ -174,12 +186,12 @@ function NewJobsTable({ jobs, router }: { jobs: Job[]; router: Nav }) {
             const st = displayJobStatus(job.status, job.application_deadline);
             return (
               <tr key={job.id}>
-                <td className="whitespace-nowrap font-medium text-ink-800">{dateDow(job.moving_date)}</td>
-                <td className="font-medium text-ink-800">{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</td>
-                <td className="text-ink-600">{luggageLayout(job.layout, job.luggage_volume)}</td>
-                <td><StatusPill tone={st.tone} label={st.label} /></td>
-                <td className="whitespace-nowrap text-ink-600">{shortDate(job.application_deadline)}</td>
-                <td className="text-right">
+                <td className={`${td} whitespace-nowrap font-medium text-ink-800`}>{dateDow(job.moving_date)}</td>
+                <td className={`${td} font-medium text-ink-800`}>{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</td>
+                <td className={`${td} text-ink-600`}>{luggageLayout(job.layout, job.luggage_volume)}</td>
+                <td className={td}><StatusPill tone={st.tone} label={st.label} /></td>
+                <td className={`${td} whitespace-nowrap text-ink-600`}>{shortDate(job.application_deadline)}</td>
+                <td className={`${td} text-right`}>
                   <button onClick={() => router.push(`/jobs/${job.id}`)} className="rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-600 transition-colors hover:bg-ink-50">
                     詳細を見る
                   </button>
@@ -194,13 +206,13 @@ function NewJobsTable({ jobs, router }: { jobs: Job[]; router: Nav }) {
 }
 
 function MyJobsList({ jobs, router }: { jobs: Job[]; router: Nav }) {
-  if (jobs.length === 0) return <div className="px-5 py-12 text-center text-sm text-ink-500">掲載中の案件はありません。</div>;
+  if (jobs.length === 0) return <div className="py-12 text-center text-sm text-ink-500">掲載中の案件はありません。</div>;
   return (
-    <div className="divide-y divide-ink-100">
+    <div className="space-y-3">
       {jobs.map((job) => {
         const st = displayJobStatus(job.status, job.application_deadline);
         return (
-          <div key={job.id} className="p-4">
+          <div key={job.id} className="rounded-xl border border-ink-200 p-4">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
@@ -237,7 +249,7 @@ function ActivityList({ items }: { items: ActivityItem[] }) {
       {items.map((a, i) => {
         const c = ACT[a.type] ?? ACT.posted;
         return (
-          <li key={i} className="flex gap-3 px-5 py-3.5">
+          <li key={i} className="flex gap-3 py-3.5">
             <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${c.tone}`}>{c.icon}</span>
             <div className="min-w-0">
               <div className="text-sm font-semibold text-ink-800">{a.text}</div>
@@ -256,7 +268,7 @@ function AnnouncementList({ items }: { items: AnnouncementItem[] }) {
   return (
     <ul className="divide-y divide-ink-100">
       {items.map((a) => (
-        <li key={a.id} className="flex items-start gap-3 px-5 py-4">
+        <li key={a.id} className="flex items-start gap-3 py-4">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="text-xs text-ink-400">{formatDate(a.published_at)}</span>
@@ -284,9 +296,9 @@ const QUICK: { href: string; title: string; desc: string; tone: string; icon: Re
 ];
 function QuickActions() {
   return (
-    <div className="divide-y divide-ink-100">
+    <div className="space-y-1">
       {QUICK.map((q) => (
-        <Link key={q.href} href={q.href} className="flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-ink-50">
+        <Link key={q.href} href={q.href} className="-mx-2 flex items-center gap-3 rounded-lg px-2 py-3 transition-colors hover:bg-ink-50">
           <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${q.tone}`}>{q.icon}</span>
           <div className="min-w-0 flex-1">
             <div className="text-sm font-semibold text-ink-800">{q.title}</div>
