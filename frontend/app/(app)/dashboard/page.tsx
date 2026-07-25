@@ -165,42 +165,44 @@ function StatusPill({ tone, label }: { tone: string; label: string }) {
 }
 
 function NewJobsTable({ jobs, router }: { jobs: Job[]; router: Nav }) {
-  if (jobs.length === 0) return <div className="py-12 text-center text-sm text-ink-500">現在募集中の案件はありません。</div>;
-  const th = "bg-ink-50 px-4 py-2.5 text-left text-xs font-semibold text-ink-500";
-  const td = "border-b border-ink-100 px-4 py-3.5 align-middle";
+  if (jobs.length === 0) return <div className="rounded-lg border border-ink-200 py-12 text-center text-sm text-ink-500">現在募集中の案件はありません。</div>;
+  const th = "border-b border-ink-200 px-4 py-3 text-left text-xs font-semibold text-ink-500";
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full border-separate border-spacing-0 text-sm [&_tbody_tr:last-child_td]:border-b-0">
-        <thead>
-          <tr>
-            <th className={`${th} rounded-l-lg`}>引越予定日</th>
-            <th className={th}>出発地 → 到着地</th>
-            <th className={th}>荷物量 / 間取り</th>
-            <th className={th}>募集状況</th>
-            <th className={th}>締切日</th>
-            <th className={`${th} rounded-r-lg text-right`}>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          {jobs.map((job) => {
-            const st = displayJobStatus(job.status, job.application_deadline);
-            return (
-              <tr key={job.id}>
-                <td className={`${td} whitespace-nowrap font-medium text-ink-800`}>{dateDow(job.moving_date)}</td>
-                <td className={`${td} font-medium text-ink-800`}>{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</td>
-                <td className={`${td} text-ink-600`}>{luggageLayout(job.layout, job.luggage_volume)}</td>
-                <td className={td}><StatusPill tone={st.tone} label={st.label} /></td>
-                <td className={`${td} whitespace-nowrap text-ink-600`}>{shortDate(job.application_deadline)}</td>
-                <td className={`${td} text-right`}>
-                  <button onClick={() => router.push(`/jobs/${job.id}`)} className="rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-600 transition-colors hover:bg-ink-50">
-                    詳細を見る
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+    <div className="overflow-hidden rounded-lg border border-ink-200">
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr className="bg-ink-50">
+              <th className={th}>引越予定日</th>
+              <th className={th}>出発地 → 到着地</th>
+              <th className={th}>荷物量 / 間取り</th>
+              <th className={th}>募集状況</th>
+              <th className={th}>締切日</th>
+              <th className={`${th} text-right`}>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {jobs.map((job, i) => {
+              const st = displayJobStatus(job.status, job.application_deadline);
+              const td = `px-4 py-3.5 align-middle ${i < jobs.length - 1 ? "border-b border-ink-200" : ""}`;
+              return (
+                <tr key={job.id} className="bg-white">
+                  <td className={`${td} whitespace-nowrap font-medium text-ink-800`}>{dateDow(job.moving_date)}</td>
+                  <td className={`${td} font-medium text-ink-800`}>{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</td>
+                  <td className={`${td} text-ink-600`}>{luggageLayout(job.layout, job.luggage_volume)}</td>
+                  <td className={td}><StatusPill tone={st.tone} label={st.label} /></td>
+                  <td className={`${td} whitespace-nowrap text-ink-600`}>{shortDate(job.application_deadline)}</td>
+                  <td className={`${td} text-right`}>
+                    <button onClick={() => router.push(`/jobs/${job.id}`)} className="rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-600 transition-colors hover:bg-ink-50">
+                      詳細を見る
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -245,7 +247,7 @@ const ACT: Record<ActivityItem["type"], { tone: string; icon: ReactNode }> = {
 function ActivityList({ items }: { items: ActivityItem[] }) {
   if (items.length === 0) return <div className="px-5 py-10 text-center text-sm text-ink-500">最近の活動はありません。</div>;
   return (
-    <ul className="divide-y divide-ink-100">
+    <ul className="divide-y divide-ink-200">
       {items.map((a, i) => {
         const c = ACT[a.type] ?? ACT.posted;
         return (
@@ -266,7 +268,7 @@ function ActivityList({ items }: { items: ActivityItem[] }) {
 function AnnouncementList({ items }: { items: AnnouncementItem[] }) {
   if (items.length === 0) return <div className="px-5 py-10 text-center text-sm text-ink-500">現在お知らせはありません。</div>;
   return (
-    <ul className="divide-y divide-ink-100">
+    <ul className="divide-y divide-ink-200">
       {items.map((a) => (
         <li key={a.id} className="flex items-start gap-3 py-4">
           <div className="min-w-0 flex-1">
@@ -296,9 +298,9 @@ const QUICK: { href: string; title: string; desc: string; tone: string; icon: Re
 ];
 function QuickActions() {
   return (
-    <div className="space-y-1">
+    <div className="space-y-2.5">
       {QUICK.map((q) => (
-        <Link key={q.href} href={q.href} className="-mx-2 flex items-center gap-3 rounded-lg px-2 py-3 transition-colors hover:bg-ink-50">
+        <Link key={q.href} href={q.href} className="flex items-center gap-3 rounded-xl border border-ink-200 px-3.5 py-3 transition-colors hover:border-brand-300 hover:bg-brand-50/40">
           <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${q.tone}`}>{q.icon}</span>
           <div className="min-w-0 flex-1">
             <div className="text-sm font-semibold text-ink-800">{q.title}</div>
