@@ -143,18 +143,18 @@ function CardHead({ title, href }: { title: string; href?: string }) {
 
 function StatCard({ tone, icon, label, value, delta }: { tone: string; icon: ReactNode; label: string; value: number; delta: number }) {
   return (
-    <div className="rounded-xl border border-ink-200 bg-white p-4">
-      <div className="flex items-center gap-3">
-        <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${tone}`}>{icon}</span>
-        <span className="text-sm font-medium text-ink-500">{label}</span>
-      </div>
-      <div className="mt-3 flex items-end justify-between gap-2">
-        <div className="text-3xl font-bold tracking-tight text-ink-900">
-          {value}<span className="ml-1 text-base font-semibold text-ink-400">件</span>
+    <div className="flex items-center gap-3.5 rounded-xl border border-ink-200 bg-white p-4">
+      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${tone}`}>{icon}</span>
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-medium text-ink-500">{label}</div>
+        <div className="mt-0.5 flex items-end justify-between gap-2">
+          <div className="text-[1.75rem] font-bold leading-tight tracking-tight text-ink-900">
+            {value}<span className="ml-0.5 text-sm font-semibold text-ink-400">件</span>
+          </div>
+          {delta > 0 && (
+            <span className="whitespace-nowrap text-xs text-ink-400">前日比 <span className="font-bold text-emerald-600">+{delta}</span></span>
+          )}
         </div>
-        {delta > 0 && (
-          <span className="whitespace-nowrap text-xs text-ink-400">前日比 <span className="font-bold text-emerald-600">+{delta}</span></span>
-        )}
       </div>
     </div>
   );
