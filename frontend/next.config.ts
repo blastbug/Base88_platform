@@ -14,6 +14,11 @@ const nextConfig: NextConfig = {
         source: "/api/:path*",
         destination: `${BACKEND_ORIGIN}/api/:path*`,
       },
+      // 添付ファイル（medialibrary の /storage）も同一オリジンで配信
+      {
+        source: "/storage/:path*",
+        destination: `${BACKEND_ORIGIN}/storage/:path*`,
+      },
     ];
   },
 };

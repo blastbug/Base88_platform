@@ -46,6 +46,15 @@ class MovingJobResource extends JsonResource
             'has_applied' => $this->when(isset($this->resource->has_applied), fn () => (bool) $this->resource->has_applied),
             'created_at' => optional($this->created_at)->toIso8601String(),
 
+            // 添付ファイル（詳細取得時のみ。相対URLでフロントの /storage プロキシ経由）
+            'attachments' => $this->when($this->relationLoaded('media'), fn () => $this->getMedia('attachments')->map(fn ($m) => [
+                'id' => $m->id,
+                'name' => $m->file_name,
+                'mime' => $m->mime_type,
+                'is_image' => str_starts_with((string) $m->mime_type, 'image/'),
+                'url' => parse_url($m->getUrl(), PHP_URL_PATH),
+            ])->values()),
+
             // 顧客情報は権限がある場合のみ
             'customer' => $this->when($canViewCustomer && $this->relationLoaded('customerDetail') && $this->customerDetail, fn () => [
                 'name' => $this->customerDetail->customer_name,

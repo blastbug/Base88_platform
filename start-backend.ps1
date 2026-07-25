@@ -13,5 +13,10 @@ if (-not (Test-Path ".env")) {
 # DB 準備（未実行なら migrate + seed。既存データを消したくない場合はこの行をコメントアウト）
 php artisan migrate --force
 
+# 添付ファイル配信用のシンボリックリンク（public/storage -> storage/app/public）
+if (-not (Test-Path "public/storage")) {
+    php artisan storage:link
+}
+
 Write-Host "== Laravel API: http://localhost:8000  (Admin: /admin) ==" -ForegroundColor Green
 php artisan serve

@@ -90,15 +90,28 @@ export default function JobDetailPage() {
           </dl>
 
           <div>
-            <div className="mb-2 text-sm font-semibold text-ink-700">添付画像 <span className="text-xs font-normal text-ink-400">(3枚まで)</span></div>
-            <div className="grid grid-cols-2 gap-3">
-              {[0, 1].map((i) => (
-                <div key={i} className="flex aspect-[4/3] items-center justify-center rounded-lg border border-dashed border-ink-200 bg-ink-50 text-ink-300">
-                  <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM8 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM3 17l5-4 3 2 5-4 5 4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                </div>
-              ))}
-            </div>
-            <p className="mt-2 text-xs text-ink-400">※ 添付画像は成約後の詳細確認時に共有されます。</p>
+            <div className="mb-2 text-sm font-semibold text-ink-700">添付ファイル <span className="text-xs font-normal text-ink-400">(画像・PDF)</span></div>
+            {job.attachments && job.attachments.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3">
+                {job.attachments.map((a) =>
+                  a.is_image ? (
+                    <a key={a.id} href={a.url} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-lg border border-ink-200">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={a.url} alt={a.name} className="aspect-[4/3] w-full object-cover transition-transform hover:scale-105" />
+                    </a>
+                  ) : (
+                    <a key={a.id} href={a.url} target="_blank" rel="noopener noreferrer" className="flex aspect-[4/3] flex-col items-center justify-center rounded-lg border border-ink-200 bg-ink-50 text-ink-500 hover:bg-ink-100">
+                      <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5zM14 3v5h5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                      <span className="mt-1 max-w-[90%] truncate text-[11px]">{a.name}</span>
+                    </a>
+                  )
+                )}
+              </div>
+            ) : (
+              <div className="flex aspect-[4/3] items-center justify-center rounded-lg border border-dashed border-ink-200 bg-ink-50 text-sm text-ink-400">
+                添付ファイルはありません
+              </div>
+            )}
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import type { Job } from "@/lib/types";
@@ -24,9 +24,31 @@ export default function NewJobPage() {
   const [errors, setErrors] = useState<Errors>({});
   const [general, setGeneral] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const [dragging, setDragging] = useState(false);
 
   function set<K extends keyof typeof form>(k: K, v: string) { setForm((f) => ({ ...f, [k]: v })); }
   const err = (k: string) => errors[k]?.[0];
+
+  const ACCEPT = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+  function addFiles(list: FileList | File[]) {
+    setFileError(null);
+    const incoming = Array.from(list);
+    const valid: File[] = [];
+    for (const f of incoming) {
+      if (!ACCEPT.includes(f.type)) { setFileError("画像（JPG/PNG/WebP）またはPDFのみ添付できます。"); continue; }
+      if (f.size > 10 * 1024 * 1024) { setFileError("1ファイルあたり最大10MBです。"); continue; }
+      valid.push(f);
+    }
+    setFiles((prev) => {
+      const merged = [...prev, ...valid];
+      if (merged.length > 3) { setFileError("添付は3ファイルまでです。"); return merged.slice(0, 3); }
+      return merged;
+    });
+  }
+  function removeFile(i: number) { setFiles((prev) => prev.filter((_, idx) => idx !== i)); }
 
   function validateStep1(): boolean {
     const e: Errors = {};
@@ -57,6 +79,16 @@ export default function NewJobPage() {
     Object.keys(payload).forEach((k) => { if (payload[k] === "") payload[k] = null; });
     try {
       const res = await api<{ data: Job }>("/jobs", { method: "POST", body: payload });
+      // 添付ファイルがあれば作成後にアップロード（失敗しても掲載自体は完了させる）
+      if (files.length > 0) {
+        const fd = new FormData();
+        files.forEach((f) => fd.append("files[]", f));
+        try {
+          await api(`/jobs/${res.data.id}/attachments`, { method: "POST", body: fd });
+        } catch {
+          /* 添付の失敗は掲載を止めない */
+        }
+      }
       router.push(`/jobs/${res.data.id}?created=1`);
     } catch (e2) {
       if (e2 instanceof ApiError && e2.status === 422) {
@@ -159,12 +191,52 @@ export default function NewJobPage() {
               </Field>
 
               <div>
-                <span className="mb-1.5 block text-sm font-medium text-ink-700">添付画像 <span className="text-xs font-normal text-ink-400">(3枚まで)</span></span>
-                <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-ink-200 bg-ink-50 py-10 text-center">
+                <span className="mb-1.5 block text-sm font-medium text-ink-700">添付ファイル <span className="text-xs font-normal text-ink-400">(画像・PDF、3ファイルまで)</span></span>
+                <input
+                  ref={fileInput}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,application/pdf"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }}
+                />
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => fileInput.current?.click()}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") fileInput.current?.click(); }}
+                  onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+                  onDragLeave={() => setDragging(false)}
+                  onDrop={(e) => { e.preventDefault(); setDragging(false); if (e.dataTransfer.files) addFiles(e.dataTransfer.files); }}
+                  className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed py-10 text-center transition-colors ${dragging ? "border-brand-400 bg-brand-50" : "border-ink-200 bg-ink-50 hover:border-brand-300"}`}
+                >
                   <svg viewBox="0 0 24 24" className="h-8 w-8 text-ink-300" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 16V4m0 0L8 8m4-4l4 4M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  <p className="mt-2 text-sm text-ink-500">クリックまたはドラッグ＆ドロップで画像を追加</p>
-                  <p className="text-xs text-ink-400">PNG / JPG / PDF（最大10MB）</p>
+                  <p className="mt-2 text-sm text-ink-500">クリックまたはドラッグ＆ドロップで追加</p>
+                  <p className="text-xs text-ink-400">JPG / PNG / WebP / PDF（最大10MB）</p>
                 </div>
+                {fileError && <p className="mt-2 text-xs text-rose-600">{fileError}</p>}
+
+                {files.length > 0 && (
+                  <ul className="mt-3 grid grid-cols-3 gap-3">
+                    {files.map((f, i) => (
+                      <li key={i} className="relative rounded-lg border border-ink-200 bg-white p-2">
+                        {f.type.startsWith("image/") ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={URL.createObjectURL(f)} alt={f.name} className="h-24 w-full rounded object-cover" />
+                        ) : (
+                          <div className="flex h-24 w-full flex-col items-center justify-center rounded bg-ink-50 text-ink-400">
+                            <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5zM14 3v5h5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                            <span className="mt-1 text-[10px]">PDF</span>
+                          </div>
+                        )}
+                        <p className="mt-1 truncate text-[11px] text-ink-500">{f.name}</p>
+                        <button type="button" onClick={() => removeFile(i)} className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-white text-ink-500 shadow ring-1 ring-ink-200 hover:text-rose-600" aria-label="削除">
+                          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M6 6l12 12M6 18L18 6" strokeLinecap="round" /></svg>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
           )}
@@ -197,6 +269,7 @@ export default function NewJobPage() {
                 <ConfirmRow label="希望金額" value={formatYen(form.desired_price ? Number(form.desired_price) : null)} />
                 <ConfirmRow label="応募締切" value={form.application_deadline.replace("T", " ")} />
                 <ConfirmRow label="備考" value={form.note || "—"} />
+                <ConfirmRow label="添付ファイル" value={files.length ? `${files.length}件` : "なし"} />
               </ConfirmBlock>
               <ConfirmBlock title="顧客情報（成約後に成約会社へ開示）">
                 <ConfirmRow label="顧客氏名" value={form.customer_name || "—"} />

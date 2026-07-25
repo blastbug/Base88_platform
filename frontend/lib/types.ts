@@ -54,7 +54,16 @@ export interface Job {
   applications_count?: number;
   has_applied?: boolean;
   created_at?: string;
+  attachments?: Attachment[];
   customer?: CustomerInfo;
+}
+
+export interface Attachment {
+  id: number;
+  name: string;
+  mime: string;
+  is_image: boolean;
+  url: string;
 }
 
 export type ApplicationStatus = "applied" | "accepted" | "rejected";

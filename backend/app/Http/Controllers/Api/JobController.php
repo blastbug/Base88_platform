@@ -68,7 +68,7 @@ class JobController extends Controller
     public function show(Request $request, MovingJob $job): JsonResponse
     {
         $user = $request->user();
-        $job->load('company')->loadCount('applications');
+        $job->load('company', 'media')->loadCount('applications');
 
         $canViewCustomer = $this->canViewCustomer($job, $user->company_id);
         if ($canViewCustomer) {
@@ -262,6 +262,29 @@ class JobController extends Controller
         $job->update(['status' => MovingJob::STATUS_CANCELLED]);
 
         return response()->json(['message' => '案件をキャンセルしました。']);
+    }
+
+    /** 添付ファイル（画像・PDF）アップロード。掲載会社のみ、1案件あたり合計3ファイルまで。 */
+    public function uploadAttachments(Request $request, MovingJob $job): JsonResponse
+    {
+        $this->authorizeOwner($request, $job);
+
+        $request->validate([
+            'files' => ['required', 'array', 'max:3'],
+            'files.*' => ['file', 'mimes:jpg,jpeg,png,webp,pdf', 'max:10240'], // 10MB
+        ]);
+
+        $existing = $job->getMedia('attachments')->count();
+        $incoming = count($request->file('files'));
+        if ($existing + $incoming > 3) {
+            throw ValidationException::withMessages(['files' => ['添付は1案件あたり合計3ファイルまでです。']]);
+        }
+
+        foreach ($request->file('files') as $file) {
+            $job->addMedia($file)->toMediaCollection('attachments');
+        }
+
+        return response()->json(['message' => '添付ファイルをアップロードしました。']);
     }
 
     /** 顧客情報の閲覧可否：成約済み かつ 成約会社 のみ true */
