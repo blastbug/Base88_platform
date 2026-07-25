@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\Announcement;
 use App\Models\Company;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -50,6 +51,14 @@ class BroadcastAnnouncement extends Page implements HasForms
                     ->required()
                     ->maxLength(255)
                     ->placeholder('例：システムメンテナンスのお知らせ'),
+                Radio::make('level')
+                    ->label('重要度')
+                    ->options([
+                        Announcement::LEVEL_NORMAL => 'お知らせ',
+                        Announcement::LEVEL_IMPORTANT => '重要',
+                    ])
+                    ->default(Announcement::LEVEL_NORMAL)
+                    ->inline(),
                 Radio::make('target')
                     ->label('対象')
                     ->options([
@@ -98,11 +107,23 @@ class BroadcastAnnouncement extends Page implements HasForms
     {
         $data = $this->form->getState();
 
-        // TODO: 実際の配信処理（メール送信・お知らせ保存）を実装
+        Announcement::create([
+            'title' => $data['title'],
+            'body' => $data['body'],
+            'level' => $data['level'] ?? Announcement::LEVEL_NORMAL,
+            'published_at' => $data['schedule'] === 'scheduled' && ! empty($data['scheduled_at'])
+                ? $data['scheduled_at']
+                : now(),
+        ]);
+
+        activity('operation')->causedBy(auth()->user())->event('announced')->log('お知らせを配信');
+
         Notification::make()
-            ->title('お知らせを受け付けました')
-            ->body($data['schedule'] === 'now' ? 'すぐに配信されます。' : '指定日時に配信予約しました。')
+            ->title('お知らせを配信しました')
+            ->body($data['schedule'] === 'now' ? '加盟会社のダッシュボードに掲載されます。' : '指定日時に公開されます。')
             ->success()
             ->send();
+
+        $this->form->fill(['target' => 'all', 'schedule' => 'now', 'level' => Announcement::LEVEL_NORMAL]);
     }
 }

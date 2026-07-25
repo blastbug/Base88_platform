@@ -86,6 +86,33 @@ export interface DashboardStats {
   my_contracted: number;
 }
 
+export type DashboardDeltas = DashboardStats;
+
+export interface AnnouncementItem {
+  id: number;
+  title: string;
+  body: string;
+  level: "normal" | "important";
+  published_at: string | null;
+}
+
+export interface ActivityItem {
+  type: "posted" | "application" | "contract";
+  text: string;
+  job_id: number;
+  route: string;
+  at: string | null;
+}
+
+export interface DashboardData {
+  stats: DashboardStats;
+  deltas: DashboardDeltas;
+  recent_jobs: { data: Job[] } | Job[];
+  my_jobs: { data: Job[] } | Job[];
+  announcements: AnnouncementItem[];
+  activities: ActivityItem[];
+}
+
 export interface Paginated<T> {
   data: T[];
   meta?: { total: number; current_page: number; last_page: number };
