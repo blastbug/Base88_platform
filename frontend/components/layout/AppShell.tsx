@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { api } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import type { AnnouncementItem } from "@/lib/types";
+import { Logo } from "@/components/Logo";
 
 interface NavItem {
   href: string;
@@ -22,7 +23,7 @@ const ic = (d: string) => (
 );
 
 const NAV: NavItem[] = [
-  { href: "/dashboard", label: "ホーム", match: (p) => p === "/dashboard", icon: ic("M3 12l9-9 9 9M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9") },
+  { href: "/dashboard", label: "ダッシュボード", match: (p) => p === "/dashboard", icon: ic("M3 12l9-9 9 9M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9") },
   { href: "/jobs", label: "案件一覧", match: (p) => p === "/jobs" || (p.startsWith("/jobs/") && p !== "/jobs/new"), icon: ic("M4 6h16M4 12h16M4 18h16") },
   { href: "/jobs/new", label: "案件を投稿", match: (p) => p === "/jobs/new", icon: ic("M12 5v14M5 12h14") },
   { href: "/my/jobs", label: "自社案件一覧", match: (p) => p.startsWith("/my/jobs"), icon: ic("M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-3M9 3v4h6V3M9 12h6M9 16h4") },
@@ -75,15 +76,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const sidebar = (
     <div className="flex h-full flex-col bg-nav-800 text-ink-300">
-      <div className="flex items-center gap-2 px-5 py-5">
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-white">
-          <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="2">
-            <path d="M3 13.5 12 4l9 9.5M5.5 11.5V19a1 1 0 0 0 1 1h4v-5h3v5h4a1 1 0 0 0 1-1v-7.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </span>
-        <span className="text-lg font-bold tracking-tight text-white">
-          BASE<span className="text-brand-400">88</span>
-        </span>
+      <div className="px-5 py-5">
+        <Logo variant="light" />
       </div>
       <nav className="mt-2 flex-1 space-y-0.5 px-3">
         {NAV.map((item) => {

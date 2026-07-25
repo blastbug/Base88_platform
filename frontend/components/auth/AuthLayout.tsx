@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Logo } from "@/components/Logo";
 
 /** ログイン系画面（再設定等）の共通レイアウト：背景写真＋中央カード */
 export function AuthLayout({ children }: { children: ReactNode }) {
@@ -17,17 +18,8 @@ export function AuthLayout({ children }: { children: ReactNode }) {
 
 export function AuthLogo() {
   return (
-    <div className="flex flex-col items-center text-center">
-      <span className="inline-flex items-center gap-2.5">
-        <span className="inline-flex h-9 w-9 items-center justify-center">
-          <svg viewBox="0 0 40 40" className="h-9 w-9">
-            <path d="M20 2.5 34.5 11 v18 L20 37.5 5.5 29 V11 Z" fill="#2563eb" />
-            <path d="M13.5 21.5 20 15 l6.5 6.5 M15.5 20v6.5a.6.6 0 0 0 .6.6h2.4v-3.4h2.9v3.4h2.5a.6.6 0 0 0 .6-.6V20"
-              fill="none" stroke="#fff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </span>
-        <span className="text-2xl font-bold tracking-tight text-ink-900">BASE88</span>
-      </span>
+    <div className="flex justify-center">
+      <Logo variant="dark" size="lg" tagline />
     </div>
   );
 }

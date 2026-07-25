@@ -6,20 +6,10 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
 import { Button, Input } from "@/components/ui";
+import { Logo as BrandLogo } from "@/components/Logo";
 
 function Logo() {
-  return (
-    <span className="inline-flex items-center gap-3">
-      <span className="inline-flex h-10 w-10 items-center justify-center">
-        <svg viewBox="0 0 40 40" className="h-10 w-10">
-          <path d="M20 2.5 34.5 11 v18 L20 37.5 5.5 29 V11 Z" fill="#2563eb" />
-          <path d="M13.5 21.5 20 15 l6.5 6.5 M15.5 20v6.5a.6.6 0 0 0 .6.6h2.4v-3.4h2.9v3.4h2.5a.6.6 0 0 0 .6-.6V20"
-            fill="none" stroke="#fff" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </span>
-      <span className="text-[28px] font-bold tracking-tight text-ink-900">BASE88</span>
-    </span>
-  );
+  return <BrandLogo variant="dark" size="lg" />;
 }
 
 export default function LoginPage() {
