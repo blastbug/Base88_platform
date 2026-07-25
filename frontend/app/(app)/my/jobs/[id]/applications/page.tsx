@@ -67,37 +67,60 @@ export default function ApplicantsPage() {
         {apps.length === 0 ? (
           <EmptyState title="まだ応募はありません" description="他社からの応募が入るとここに表示されます。" />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="dtable">
-              <thead>
-                <tr>
-                  <th>会社名</th>
-                  <th>応募日時</th>
-                  <th>メッセージ</th>
-                  <th>ステータス</th>
-                  <th className="text-right">操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                {apps.map((app) => (
-                  <tr key={app.id}>
-                    <td className="whitespace-nowrap font-semibold text-ink-800">{app.company?.name}</td>
-                    <td className="whitespace-nowrap text-ink-600">{formatDateTime(app.created_at)}</td>
-                    <td className="max-w-xs text-ink-600">{app.message ?? "—"}</td>
-                    <td><Badge tone={APPLICATION_STATUS_TONE[app.status]}>{APPLICATION_STATUS_LABEL[app.status]}</Badge></td>
-                    <td>
-                      <div className="flex justify-end gap-2">
-                        <Button size="sm" variant="secondary" onClick={() => router.push(`/jobs/${id}`)}>詳細</Button>
-                        {job?.status === "recruiting" && app.status === "applied" && (
-                          <Button size="sm" loading={busyId === app.id} onClick={() => decide(app.id, app.company?.name)}>成約にする</Button>
-                        )}
-                      </div>
-                    </td>
+          <>
+            {/* PC・タブレット: テーブル */}
+            <div className="hidden overflow-x-auto md:block">
+              <table className="dtable">
+                <thead>
+                  <tr>
+                    <th>会社名</th>
+                    <th>応募日時</th>
+                    <th>メッセージ</th>
+                    <th>ステータス</th>
+                    <th className="text-right">操作</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {apps.map((app) => (
+                    <tr key={app.id}>
+                      <td className="whitespace-nowrap font-semibold text-ink-800">{app.company?.name}</td>
+                      <td className="whitespace-nowrap text-ink-600">{formatDateTime(app.created_at)}</td>
+                      <td className="max-w-xs text-ink-600">{app.message ?? "—"}</td>
+                      <td><Badge tone={APPLICATION_STATUS_TONE[app.status]}>{APPLICATION_STATUS_LABEL[app.status]}</Badge></td>
+                      <td>
+                        <div className="flex justify-end gap-2">
+                          <Button size="sm" variant="secondary" onClick={() => router.push(`/jobs/${id}`)}>詳細</Button>
+                          {job?.status === "recruiting" && app.status === "applied" && (
+                            <Button size="sm" loading={busyId === app.id} onClick={() => decide(app.id, app.company?.name)}>成約にする</Button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* スマホ: カード */}
+            <ul className="divide-y divide-ink-100 md:hidden">
+              {apps.map((app) => (
+                <li key={app.id} className="px-4 py-3.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-semibold text-ink-800">{app.company?.name}</span>
+                    <Badge tone={APPLICATION_STATUS_TONE[app.status]}>{APPLICATION_STATUS_LABEL[app.status]}</Badge>
+                  </div>
+                  <div className="mt-0.5 text-xs text-ink-400">{formatDateTime(app.created_at)}</div>
+                  {app.message && <p className="mt-2 whitespace-pre-wrap text-sm text-ink-600">{app.message}</p>}
+                  <div className="mt-3 flex gap-2">
+                    <Button size="sm" variant="secondary" className="flex-1" onClick={() => router.push(`/jobs/${id}`)}>詳細</Button>
+                    {job?.status === "recruiting" && app.status === "applied" && (
+                      <Button size="sm" className="flex-1" loading={busyId === app.id} onClick={() => decide(app.id, app.company?.name)}>成約にする</Button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
         <div className="border-t border-ink-100 px-5 py-3 text-xs text-ink-500">
           ※ 成約を確定すると、他の会社は案件・詳細情報を閲覧できなくなります。

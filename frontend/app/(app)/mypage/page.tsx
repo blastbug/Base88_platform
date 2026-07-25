@@ -128,7 +128,8 @@ export default function MyPage() {
                     {isCompanyAdmin && <Button size="sm" onClick={() => { setStaffMsg(null); setAddStaffOpen(true); }}>＋ 担当者を追加</Button>}
                   </div>
                   {staffMsg && <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800">{staffMsg}</div>}
-                  <div className="overflow-x-auto rounded-xl border border-ink-200">
+                  {/* PC・タブレット: テーブル */}
+                  <div className="hidden overflow-x-auto rounded-xl border border-ink-200 md:block">
                     <table className="dtable">
                       <thead><tr><th>担当者名</th><th>メールアドレス</th><th>権限</th><th>状態</th>{isCompanyAdmin && <th className="text-right">操作</th>}</tr></thead>
                       <tbody>
@@ -152,6 +153,27 @@ export default function MyPage() {
                       </tbody>
                     </table>
                   </div>
+
+                  {/* スマホ: カード */}
+                  <ul className="divide-y divide-ink-100 rounded-xl border border-ink-200 md:hidden">
+                    {staff.map((s) => (
+                      <li key={s.id} className="px-4 py-3.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="font-medium text-ink-800">{s.name}{s.id === user?.id && <span className="ml-2 text-xs text-ink-400">(あなた)</span>}</span>
+                          {s.is_active ? <Badge tone="bg-emerald-50 text-emerald-700 ring-emerald-600/20">有効</Badge> : <Badge tone="bg-ink-100 text-ink-500 ring-ink-500/20">停止</Badge>}
+                        </div>
+                        <div className="mt-0.5 break-all text-sm text-ink-600">{s.email}</div>
+                        <div className="mt-2 flex items-center justify-between gap-2">
+                          <Badge tone="bg-brand-50 text-brand-700 ring-brand-600/20">{ROLE_LABEL[s.role] ?? s.role}</Badge>
+                          {isCompanyAdmin && s.id !== user?.id && (
+                            <Button size="sm" variant={s.is_active ? "danger" : "secondary"} onClick={() => toggleStaff(s)}>
+                              {s.is_active ? "停止" : "有効化"}
+                            </Button>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
 

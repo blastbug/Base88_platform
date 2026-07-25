@@ -51,7 +51,8 @@ export default function DashboardPage() {
         title="新着案件"
         action={<Link href="/jobs" className="text-sm font-semibold text-brand-600 hover:text-brand-700">すべて見る</Link>}
       >
-        <div className="overflow-x-auto">
+        {/* PC・タブレット: テーブル */}
+        <div className="hidden overflow-x-auto md:block">
           <table className="dtable">
             <thead>
               <tr>
@@ -81,6 +82,28 @@ export default function DashboardPage() {
             </tbody>
           </table>
         </div>
+
+        {/* スマホ: カード */}
+        <ul className="divide-y divide-ink-100 md:hidden">
+          {recent.map((job) => {
+            const st = displayJobStatus(job.status, job.application_deadline);
+            return (
+              <li key={job.id}>
+                <button onClick={() => router.push(`/jobs/${job.id}`)} className="block w-full px-4 py-3.5 text-left transition-colors hover:bg-ink-50">
+                  <div className="flex items-center justify-between gap-2">
+                    <Badge tone={st.tone}>{st.label}</Badge>
+                    <span className="text-xs text-ink-400">締切 {shortDate(job.application_deadline)}</span>
+                  </div>
+                  <div className="mt-2 font-semibold text-ink-800">{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</div>
+                  <div className="mt-1 text-sm text-ink-500">{formatDate(job.moving_date)}・{luggageLayout(job.layout, job.luggage_volume)}</div>
+                </button>
+              </li>
+            );
+          })}
+          {recent.length === 0 && (
+            <li className="py-10 text-center text-sm text-ink-500">現在募集中の案件はありません。</li>
+          )}
+        </ul>
       </SectionCard>
     </div>
   );

@@ -49,38 +49,64 @@ export default function MyApplicationsPage() {
         ) : filtered.length === 0 ? (
           <EmptyState title="該当する応募はありません" description="「案件一覧」から気になる案件に応募できます。" action={<Button variant="secondary" onClick={() => router.push("/jobs")}>案件を探す</Button>} />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="dtable">
-              <thead>
-                <tr>
-                  <th>出発地 → 到着地</th>
-                  <th>応募日時</th>
-                  <th>ステータス</th>
-                  <th>結果</th>
-                  <th className="text-right">操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((app) => {
-                  const job = app.job;
-                  if (!job) return null;
-                  return (
-                    <tr key={app.id}>
-                      <td className="font-medium text-ink-800">{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</td>
-                      <td className="whitespace-nowrap text-ink-600">{formatDateTime(app.created_at)}</td>
-                      <td><Badge tone={APPLICATION_STATUS_TONE[app.status]}>{APPLICATION_STATUS_LABEL[app.status]}</Badge></td>
-                      <td className="whitespace-nowrap text-ink-600">
+          <>
+            {/* PC・タブレット: テーブル */}
+            <div className="hidden overflow-x-auto md:block">
+              <table className="dtable">
+                <thead>
+                  <tr>
+                    <th>出発地 → 到着地</th>
+                    <th>応募日時</th>
+                    <th>ステータス</th>
+                    <th>結果</th>
+                    <th className="text-right">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((app) => {
+                    const job = app.job;
+                    if (!job) return null;
+                    return (
+                      <tr key={app.id}>
+                        <td className="font-medium text-ink-800">{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</td>
+                        <td className="whitespace-nowrap text-ink-600">{formatDateTime(app.created_at)}</td>
+                        <td><Badge tone={APPLICATION_STATUS_TONE[app.status]}>{APPLICATION_STATUS_LABEL[app.status]}</Badge></td>
+                        <td className="whitespace-nowrap text-ink-600">
+                          {app.status === "accepted" ? `成約（${formatDate(job.moving_date)}）` : app.status === "rejected" ? "他社に成約" : "選定待ち"}
+                        </td>
+                        <td className="text-right">
+                          <Button size="sm" variant="secondary" onClick={() => router.push(`/jobs/${job.id}`)}>詳細</Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* スマホ: カード */}
+            <ul className="divide-y divide-ink-100 md:hidden">
+              {filtered.map((app) => {
+                const job = app.job;
+                if (!job) return null;
+                return (
+                  <li key={app.id} className="px-4 py-3.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <Badge tone={APPLICATION_STATUS_TONE[app.status]}>{APPLICATION_STATUS_LABEL[app.status]}</Badge>
+                      <span className="text-xs text-ink-400">{formatDateTime(app.created_at)}</span>
+                    </div>
+                    <div className="mt-2 font-semibold text-ink-800">{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</div>
+                    <div className="mt-1 flex items-center justify-between gap-3">
+                      <span className="text-sm text-ink-500">
                         {app.status === "accepted" ? `成約（${formatDate(job.moving_date)}）` : app.status === "rejected" ? "他社に成約" : "選定待ち"}
-                      </td>
-                      <td className="text-right">
-                        <Button size="sm" variant="secondary" onClick={() => router.push(`/jobs/${job.id}`)}>詳細</Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </span>
+                      <Button size="sm" variant="secondary" className="shrink-0" onClick={() => router.push(`/jobs/${job.id}`)}>詳細</Button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         )}
       </SectionCard>
     </div>

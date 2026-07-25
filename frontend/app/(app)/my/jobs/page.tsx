@@ -56,42 +56,69 @@ export default function MyJobsPage() {
         ) : jobs.length === 0 ? (
           <EmptyState title="該当する案件はありません" description="「案件を投稿」から新しい案件を掲載できます。" action={<LinkButton href="/jobs/new">案件を投稿する</LinkButton>} />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="dtable">
-              <thead>
-                <tr>
-                  <th>引越予定日</th>
-                  <th>出発地 → 到着地</th>
-                  <th>荷物量 / 間取り</th>
-                  <th>希望金額</th>
-                  <th>募集状況</th>
-                  <th className="text-center">応募数</th>
-                  <th className="text-right">操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                {jobs.map((job) => {
-                  const st = displayJobStatus(job.status, job.application_deadline);
-                  return (
-                    <tr key={job.id}>
-                      <td className="whitespace-nowrap font-medium text-ink-800">{formatDate(job.moving_date)}</td>
-                      <td className="font-medium text-ink-800">{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</td>
-                      <td className="text-ink-600">{luggageLayout(job.layout, job.luggage_volume)}</td>
-                      <td className="whitespace-nowrap font-semibold text-ink-800">{formatYen(job.desired_price)}</td>
-                      <td><Badge tone={st.tone}>{st.label}</Badge></td>
-                      <td className="text-center font-semibold text-ink-800">{job.applications_count ?? 0}</td>
-                      <td>
-                        <div className="flex justify-end gap-2">
-                          <Button size="sm" variant="secondary" onClick={() => router.push(`/jobs/${job.id}`)}>詳細</Button>
-                          <Button size="sm" onClick={() => router.push(`/my/jobs/${job.id}/applications`)}>応募一覧</Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <>
+            {/* PC・タブレット: テーブル */}
+            <div className="hidden overflow-x-auto md:block">
+              <table className="dtable">
+                <thead>
+                  <tr>
+                    <th>引越予定日</th>
+                    <th>出発地 → 到着地</th>
+                    <th>荷物量 / 間取り</th>
+                    <th>希望金額</th>
+                    <th>募集状況</th>
+                    <th className="text-center">応募数</th>
+                    <th className="text-right">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {jobs.map((job) => {
+                    const st = displayJobStatus(job.status, job.application_deadline);
+                    return (
+                      <tr key={job.id}>
+                        <td className="whitespace-nowrap font-medium text-ink-800">{formatDate(job.moving_date)}</td>
+                        <td className="font-medium text-ink-800">{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</td>
+                        <td className="text-ink-600">{luggageLayout(job.layout, job.luggage_volume)}</td>
+                        <td className="whitespace-nowrap font-semibold text-ink-800">{formatYen(job.desired_price)}</td>
+                        <td><Badge tone={st.tone}>{st.label}</Badge></td>
+                        <td className="text-center font-semibold text-ink-800">{job.applications_count ?? 0}</td>
+                        <td>
+                          <div className="flex justify-end gap-2">
+                            <Button size="sm" variant="secondary" onClick={() => router.push(`/jobs/${job.id}`)}>詳細</Button>
+                            <Button size="sm" onClick={() => router.push(`/my/jobs/${job.id}/applications`)}>応募一覧</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* スマホ: カード */}
+            <ul className="divide-y divide-ink-100 md:hidden">
+              {jobs.map((job) => {
+                const st = displayJobStatus(job.status, job.application_deadline);
+                return (
+                  <li key={job.id} className="px-4 py-3.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <Badge tone={st.tone}>{st.label}</Badge>
+                      <span className="text-xs text-ink-400">応募 {job.applications_count ?? 0}件</span>
+                    </div>
+                    <div className="mt-2 font-semibold text-ink-800">{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</div>
+                    <div className="mt-1 flex items-end justify-between gap-3">
+                      <span className="text-sm text-ink-500">{formatDate(job.moving_date)}・{luggageLayout(job.layout, job.luggage_volume)}</span>
+                      <span className="shrink-0 font-bold text-ink-900">{formatYen(job.desired_price)}</span>
+                    </div>
+                    <div className="mt-3 flex gap-2">
+                      <Button size="sm" variant="secondary" className="flex-1" onClick={() => router.push(`/jobs/${job.id}`)}>詳細</Button>
+                      <Button size="sm" className="flex-1" onClick={() => router.push(`/my/jobs/${job.id}/applications`)}>応募一覧</Button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         )}
       </SectionCard>
 
