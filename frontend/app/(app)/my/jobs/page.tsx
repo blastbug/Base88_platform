@@ -85,6 +85,7 @@ export default function MyJobsPage() {
                         <td>
                           <div className="flex justify-end gap-2">
                             <Button size="sm" variant="secondary" onClick={() => router.push(`/jobs/${job.id}`)}>詳細</Button>
+                            {job.status === "recruiting" && <Button size="sm" variant="secondary" onClick={() => router.push(`/my/jobs/${job.id}/edit`)}>編集</Button>}
                             <Button size="sm" onClick={() => router.push(`/my/jobs/${job.id}/applications`)}>応募一覧</Button>
                           </div>
                         </td>
@@ -112,6 +113,7 @@ export default function MyJobsPage() {
                     </div>
                     <div className="mt-3 flex gap-2">
                       <Button size="sm" variant="secondary" className="flex-1" onClick={() => router.push(`/jobs/${job.id}`)}>詳細</Button>
+                      {job.status === "recruiting" && <Button size="sm" variant="secondary" className="flex-1" onClick={() => router.push(`/my/jobs/${job.id}/edit`)}>編集</Button>}
                       <Button size="sm" className="flex-1" onClick={() => router.push(`/my/jobs/${job.id}/applications`)}>応募一覧</Button>
                     </div>
                   </li>

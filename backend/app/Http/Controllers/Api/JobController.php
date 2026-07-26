@@ -186,6 +186,65 @@ class JobController extends Controller
         return (new MovingJobResource($job))->response()->setStatusCode(201);
     }
 
+    /** 案件の編集（発注会社・募集中のみ）。顧客情報も更新可能。 */
+    public function update(Request $request, MovingJob $job): JsonResponse
+    {
+        $this->authorizeOwner($request, $job);
+
+        if ($job->status !== MovingJob::STATUS_RECRUITING) {
+            throw ValidationException::withMessages(['status' => ['募集中の案件のみ編集できます。']]);
+        }
+
+        $data = $request->validate([
+            'moving_date' => ['required', 'date'],
+            'time_slot' => ['nullable', 'string', 'max:50'],
+            'from_prefecture' => ['required', 'string', 'max:20'],
+            'from_city' => ['nullable', 'string', 'max:100'],
+            'to_prefecture' => ['required', 'string', 'max:20'],
+            'to_city' => ['nullable', 'string', 'max:100'],
+            'building_type' => ['required', 'string', 'max:50'],
+            'layout' => ['nullable', 'string', 'max:50'],
+            'luggage_volume' => ['required', 'string', 'max:100'],
+            'truck_size' => ['nullable', 'string', 'max:50'],
+            'worker_count' => ['nullable', 'integer', 'min:0', 'max:100'],
+            'floors' => ['nullable', 'string', 'max:50'],
+            'has_elevator' => ['nullable', 'boolean'],
+            'desired_price' => ['nullable', 'integer', 'min:0'],
+            'note' => ['nullable', 'string', 'max:2000'],
+            'application_deadline' => ['required', 'date', 'after:now'],
+            'customer_name' => ['nullable', 'string', 'max:100'],
+            'customer_phone' => ['nullable', 'string', 'max:30'],
+            'customer_address' => ['nullable', 'string', 'max:255'],
+            'contact_note' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        DB::transaction(function () use ($job, $data) {
+            $job->update(collect($data)->except(['customer_name', 'customer_phone', 'customer_address', 'contact_note'])->all());
+
+            if (! empty($data['customer_name'])) {
+                MovingJobCustomerDetail::updateOrCreate(
+                    ['moving_job_id' => $job->id],
+                    [
+                        'customer_name' => $data['customer_name'],
+                        'customer_phone' => $data['customer_phone'] ?? '',
+                        'customer_address' => $data['customer_address'] ?? '',
+                        'contact_note' => $data['contact_note'] ?? null,
+                    ]
+                );
+            } else {
+                MovingJobCustomerDetail::where('moving_job_id', $job->id)->delete();
+            }
+        });
+
+        activity('operation')->causedBy($request->user())->performedOn($job)->event('updated')->log('案件を編集');
+
+        $job->load('company')->loadCount('applications');
+        $job->canViewCustomer = true;
+        $job->load('customerDetail');
+
+        return (new MovingJobResource($job))->response();
+    }
+
     /** 自社が掲載した案件一覧（?status で絞り込み） */
     public function myPosted(Request $request): JsonResponse
     {

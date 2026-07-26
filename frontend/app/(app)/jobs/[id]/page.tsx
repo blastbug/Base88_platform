@@ -42,6 +42,7 @@ export default function JobDetailPage() {
     if (typeof window === "undefined") return;
     const q = window.location.search;
     if (q.includes("created=1")) setBanner("案件を掲載しました。他社からの応募をお待ちください。");
+    if (q.includes("updated=1")) setBanner("案件を更新しました。");
     if (q.includes("upload=failed")) setUploadWarn(true);
   }, []);
 
@@ -232,6 +233,7 @@ function OwnerActions({ job, onChanged, setError }: { job: Job; onChanged: () =>
   }
   return (
     <>
+      {job.status === "recruiting" && <LinkButton href={`/my/jobs/${job.id}/edit`} variant="secondary">編集</LinkButton>}
       {job.status === "contracted" && <Button variant="secondary" loading={busy} onClick={() => act("complete", "この案件を完了にしますか？")}>完了登録</Button>}
       {(job.status === "recruiting" || job.status === "contracted") && <Button variant="danger" loading={busy} onClick={() => act("cancel", "この案件をキャンセルしますか？")}>キャンセル</Button>}
     </>

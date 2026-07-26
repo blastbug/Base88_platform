@@ -25,6 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // 案件（発注・受注 共通の閲覧／発注操作）
     Route::get('/jobs', [JobController::class, 'index']);
     Route::post('/jobs', [JobController::class, 'store']);
+    Route::put('/jobs/{job}', [JobController::class, 'update']);
     Route::get('/jobs/{job}', [JobController::class, 'show']);
     Route::get('/jobs/{job}/applications', [JobController::class, 'applications']);
     Route::post('/jobs/{job}/decide', [JobController::class, 'decide']);
