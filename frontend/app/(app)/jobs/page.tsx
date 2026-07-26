@@ -117,7 +117,7 @@ export default function JobsPage() {
 
       {/* Filter bar */}
       <div className="card p-5">
-        <div className="grid gap-4 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Field label="キーワード">
             <div className="relative">
               <input
@@ -131,10 +131,10 @@ export default function JobsPage() {
             </div>
           </Field>
           <Field label="引越予定日">
-            <div className="flex items-center gap-2">
-              <input type="date" className="input-base min-w-0" value={draft.dateFrom} onChange={(e) => setDraft({ ...draft, dateFrom: e.target.value })} />
-              <span className="shrink-0 text-ink-400">〜</span>
-              <input type="date" className="input-base min-w-0" value={draft.dateTo} onChange={(e) => setDraft({ ...draft, dateTo: e.target.value })} />
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
+              <input type="date" className="input-base min-w-0 sm:flex-1" value={draft.dateFrom} onChange={(e) => setDraft({ ...draft, dateFrom: e.target.value })} />
+              <span className="shrink-0 self-center text-ink-400">〜</span>
+              <input type="date" className="input-base min-w-0 sm:flex-1" value={draft.dateTo} onChange={(e) => setDraft({ ...draft, dateTo: e.target.value })} />
             </div>
           </Field>
           <Field label="荷物量 / 間取り">
@@ -150,16 +150,16 @@ export default function JobsPage() {
           </Field>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium text-ink-700">並び順</span>
-            <Select className="min-w-[12rem]" value={sort} onChange={(e) => changeSort(e.target.value)}>
+            <Select className="w-full sm:w-auto sm:min-w-[12rem]" value={sort} onChange={(e) => changeSort(e.target.value)}>
               {SORT_OPTIONS.map((s) => <option key={s.v} value={s.v}>{s.l}</option>)}
             </Select>
           </label>
           <div className="flex gap-2">
-            <Button variant="secondary" onClick={reset}>リセット</Button>
-            <Button onClick={search}>検索</Button>
+            <Button variant="secondary" className="flex-1 sm:flex-none" onClick={reset}>リセット</Button>
+            <Button className="flex-1 sm:flex-none" onClick={search}>検索</Button>
           </div>
         </div>
       </div>
