@@ -123,9 +123,9 @@ export default function MyPage() {
 
               {tab === "staff" && (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm text-ink-500">自社の担当者アカウントを管理します。</p>
-                    {isCompanyAdmin && <Button size="sm" onClick={() => { setStaffMsg(null); setAddStaffOpen(true); }}>＋ 担当者を追加</Button>}
+                    {isCompanyAdmin && <Button size="sm" className="self-start sm:self-auto" onClick={() => { setStaffMsg(null); setAddStaffOpen(true); }}>＋ 担当者を追加</Button>}
                   </div>
                   {staffMsg && <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800">{staffMsg}</div>}
                   {/* PC・タブレット: テーブル */}
@@ -159,7 +159,7 @@ export default function MyPage() {
                     {staff.map((s) => (
                       <li key={s.id} className="px-4 py-3.5">
                         <div className="flex items-start justify-between gap-2">
-                          <span className="font-medium text-ink-800">{s.name}{s.id === user?.id && <span className="ml-2 text-xs text-ink-400">(あなた)</span>}</span>
+                          <span className="min-w-0 font-medium text-ink-800">{s.name}{s.id === user?.id && <span className="ml-1 whitespace-nowrap text-xs text-ink-400">(あなた)</span>}</span>
                           {s.is_active ? <Badge tone="bg-emerald-50 text-emerald-700 ring-emerald-600/20">有効</Badge> : <Badge tone="bg-ink-100 text-ink-500 ring-ink-500/20">停止</Badge>}
                         </div>
                         <div className="mt-0.5 break-all text-sm text-ink-600">{s.email}</div>
