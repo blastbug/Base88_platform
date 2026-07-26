@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import type { ActivityItem, AnnouncementItem, DashboardData, Job } from "@/lib/types";
 import { Spinner } from "@/components/ui";
-import { displayJobStatus, formatDate, formatDateTime, luggageLayout, route, shortDate } from "@/lib/format";
+import { displayJobStatus, formatDate, formatDateTime, jobCode, luggageLayout, route, shortDate } from "@/lib/format";
 
 type Nav = { push: (href: string) => void };
 
@@ -213,13 +213,35 @@ function NewJobsTable({ jobs, router }: { jobs: Job[]; router: Nav }) {
           const st = displayJobStatus(job.status, job.application_deadline);
           return (
             <li key={job.id}>
-              <button onClick={() => router.push(`/jobs/${job.id}`)} className="block w-full px-4 py-3.5 text-left transition-colors hover:bg-ink-50">
-                <div className="flex items-center justify-between gap-2">
-                  <StatusPill tone={st.tone} label={st.label} />
-                  <span className="text-xs text-ink-400">締切 {shortDate(job.application_deadline)}</span>
+              <button onClick={() => router.push(`/jobs/${job.id}`)} className="flex w-full items-center gap-2 px-4 py-4 text-left transition-colors hover:bg-ink-50">
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="whitespace-nowrap font-mono text-sm font-bold text-brand-600">{jobCode(job.id, job.moving_date)}</span>
+                    <span className="flex shrink-0 items-center gap-2 whitespace-nowrap">
+                      <StatusPill tone={st.tone} label={st.label} />
+                      <span className="text-xs text-ink-400">締切 {shortDate(job.application_deadline)}</span>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-ink-700">
+                    <Ic d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" className="h-4 w-4 shrink-0 text-ink-400" />
+                    {dateDow(job.moving_date)}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-ink-700">
+                    <Svg className="h-4 w-4 shrink-0 text-ink-400"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0z" /><circle cx="12" cy="10" r="3" /></Svg>
+                    <span className="min-w-0 truncate">{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-ink-600">
+                    <span className="flex items-center gap-2">
+                      <Svg className="h-4 w-4 shrink-0 text-ink-400"><path d="m7.5 4.3 9 5.2M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><path d="m3.3 7 8.7 5 8.7-5M12 22V12" /></Svg>
+                      {luggageLayout(job.layout, job.luggage_volume)}
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <Svg className="h-4 w-4 shrink-0 text-ink-400"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></Svg>
+                      {job.applications_count ?? 0}社
+                    </span>
+                  </div>
                 </div>
-                <div className="mt-2 font-semibold text-ink-800">{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</div>
-                <div className="mt-1 text-sm text-ink-500">{dateDow(job.moving_date)}・{luggageLayout(job.layout, job.luggage_volume)}</div>
+                <Ic d={CHEVRON} className="h-5 w-5 shrink-0 text-ink-300" />
               </button>
             </li>
           );
