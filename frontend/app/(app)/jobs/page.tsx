@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import type { Job, Paginated } from "@/lib/types";
 import { Badge, Button, EmptyState, Select, Spinner } from "@/components/ui";
-import { formatDate, formatDateDow, jobCode, listJobStatus, luggageLayout, route, shortDate } from "@/lib/format";
+import { formatDate, formatDateDow, jobCode, listJobStatus, luggageLayout, route } from "@/lib/format";
 
 const STATUS_OPTIONS: { v: string; l: string }[] = [
   { v: "", l: "すべて" },
@@ -116,26 +116,26 @@ export default function JobsPage() {
       {error && <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
 
       {/* Filter bar */}
-      <div className="card p-5">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Field label="キーワード">
-            <div className="relative">
-              <input
-                className="input-base pr-9"
-                placeholder="出発地・到着地・案件IDで検索"
-                value={draft.keyword}
-                onChange={(e) => setDraft({ ...draft, keyword: e.target.value })}
-                onKeyDown={(e) => e.key === "Enter" && search()}
-              />
-              <svg viewBox="0 0 24 24" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" fill="none" stroke="currentColor" strokeWidth="2"><path d="m21 21-4.3-4.3M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            </div>
-          </Field>
+      <div className="card p-4 sm:p-5">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          <div className="col-span-2 lg:col-span-4">
+            <Field label="キーワード">
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">
+                  <Ic className="h-4 w-4 text-ink-400"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></Ic>
+                </span>
+                <input
+                  className="input-base pl-9"
+                  placeholder="出発地・到着地・案件IDで検索"
+                  value={draft.keyword}
+                  onChange={(e) => setDraft({ ...draft, keyword: e.target.value })}
+                  onKeyDown={(e) => e.key === "Enter" && search()}
+                />
+              </div>
+            </Field>
+          </div>
           <Field label="引越予定日">
-            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
-              <input type="date" className="input-base min-w-0 sm:flex-1" value={draft.dateFrom} onChange={(e) => setDraft({ ...draft, dateFrom: e.target.value })} />
-              <span className="shrink-0 self-center text-ink-400">〜</span>
-              <input type="date" className="input-base min-w-0 sm:flex-1" value={draft.dateTo} onChange={(e) => setDraft({ ...draft, dateTo: e.target.value })} />
-            </div>
+            <DateRangeField from={draft.dateFrom} to={draft.dateTo} onFrom={(v) => setDraft({ ...draft, dateFrom: v })} onTo={(v) => setDraft({ ...draft, dateTo: v })} />
           </Field>
           <Field label="荷物量 / 間取り">
             <Select value={draft.layout} onChange={(e) => setDraft({ ...draft, layout: e.target.value })}>
@@ -148,32 +148,29 @@ export default function JobsPage() {
               {STATUS_OPTIONS.map((s) => <option key={s.v} value={s.v}>{s.l}</option>)}
             </Select>
           </Field>
-        </div>
-
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
-          <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-ink-700">並び順</span>
-            <Select className="w-full sm:w-auto sm:min-w-[12rem]" value={sort} onChange={(e) => changeSort(e.target.value)}>
+          <Field label="並び順">
+            <Select value={sort} onChange={(e) => changeSort(e.target.value)}>
               {SORT_OPTIONS.map((s) => <option key={s.v} value={s.v}>{s.l}</option>)}
             </Select>
-          </label>
-          <div className="flex gap-2">
-            <Button variant="secondary" className="flex-1 sm:flex-none" onClick={reset}>リセット</Button>
-            <Button className="flex-1 sm:flex-none" onClick={search}>検索</Button>
-          </div>
+          </Field>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:mt-4 sm:flex sm:justify-end">
+          <Button variant="secondary" className="w-full sm:w-auto sm:min-w-[7rem]" onClick={reset}>リセット</Button>
+          <Button className="w-full sm:w-auto sm:min-w-[7rem]" onClick={search}>検索</Button>
         </div>
       </div>
 
       {/* Results */}
       <div className="card">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-100 px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-100 px-4 py-4 sm:px-5">
           <div className="text-sm font-bold text-ink-800">全 <span className="text-brand-600">{total}</span> 件</div>
           <div className="flex items-center gap-3">
             <Button size="sm" variant="secondary" loading={csvBusy} onClick={downloadCsv}>
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" strokeLinecap="round" strokeLinejoin="round" /></svg>
               CSVダウンロード
             </Button>
-            <Pager page={page} lastPage={lastPage} onPage={setPage} />
+            <div className="hidden sm:block"><Pager page={page} lastPage={lastPage} onPage={setPage} /></div>
           </div>
         </div>
 
@@ -236,17 +233,35 @@ export default function JobsPage() {
                 const st = listJobStatus(job.status, job.application_deadline);
                 return (
                   <li key={job.id}>
-                    <button onClick={() => router.push(`/jobs/${job.id}`)} className="block w-full px-4 py-3.5 text-left transition-colors hover:bg-ink-50">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-mono text-xs font-semibold text-brand-600">{jobCode(job.id, job.moving_date)}</span>
-                        <Badge tone={st.tone}>{st.label}</Badge>
+                    <button onClick={() => router.push(`/jobs/${job.id}`)} className="flex w-full items-center gap-2 px-4 py-4 text-left transition-colors hover:bg-ink-50">
+                      <div className="min-w-0 flex-1 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="whitespace-nowrap font-mono text-sm font-bold text-brand-600">{jobCode(job.id, job.moving_date)}</span>
+                          <span className="flex shrink-0 items-center gap-2 whitespace-nowrap">
+                            <Badge tone={st.tone}>{st.label}</Badge>
+                            <span className="text-xs text-ink-400">締切日 {formatDate(job.application_deadline)}</span>
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-ink-700">
+                          <Ic className="h-4 w-4 shrink-0 text-ink-400"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" /></Ic>
+                          {formatDateDow(job.moving_date)}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-ink-700">
+                          <Ic className="h-4 w-4 shrink-0 text-ink-400"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0z" /><circle cx="12" cy="10" r="3" /></Ic>
+                          <span className="min-w-0 truncate">{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-ink-600">
+                          <span className="flex items-center gap-2">
+                            <Ic className="h-4 w-4 shrink-0 text-ink-400"><path d="m7.5 4.3 9 5.2M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><path d="m3.3 7 8.7 5 8.7-5M12 22V12" /></Ic>
+                            {luggageLayout(job.layout, job.luggage_volume)}
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <Ic className="h-4 w-4 shrink-0 text-ink-400"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></Ic>
+                            {job.applications_count ?? 0}社
+                          </span>
+                        </div>
                       </div>
-                      <div className="mt-1.5 font-semibold text-ink-800">{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</div>
-                      <div className="mt-1 flex items-center justify-between gap-3 text-xs text-ink-500">
-                        <span>{formatDateDow(job.moving_date)}・{luggageLayout(job.layout, job.luggage_volume)}</span>
-                        <span>応募 {job.applications_count ?? 0}社</span>
-                      </div>
-                      <div className="mt-0.5 text-xs text-ink-400">締切 {shortDate(job.application_deadline)}</div>
+                      <Ic className="h-5 w-5 shrink-0 text-ink-300"><path d="m9 18 6-6-6-6" /></Ic>
                     </button>
                   </li>
                 );
@@ -272,6 +287,54 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="mb-1.5 block text-sm font-medium text-ink-700">{label}</span>
       {children}
     </label>
+  );
+}
+
+function Ic({ children, className = "h-4 w-4 shrink-0 text-ink-400" }: { children: React.ReactNode; className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      {children}
+    </svg>
+  );
+}
+
+/** コンパクトな日付レンジ入力（カレンダーアイコン＋「開始日 〜 終了日」。タップでポップオーバー） */
+function DateRangeField({ from, to, onFrom, onTo }: { from: string; to: string; onFrom: (v: string) => void; onTo: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    function onDoc(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); }
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+  const has = from || to;
+  const fmt = (s: string) => (s ? s.replace(/-/g, "/") : "");
+  return (
+    <div className="relative" ref={ref}>
+      <button type="button" onClick={() => setOpen((v) => !v)} className="input-base flex w-full items-center gap-2 text-left">
+        <Ic className="h-4 w-4 shrink-0 text-ink-400"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" /></Ic>
+        <span className={`truncate text-sm ${has ? "text-ink-800" : "text-ink-400"}`}>
+          {has ? `${from ? fmt(from) : "開始日"} 〜 ${to ? fmt(to) : "終了日"}` : "開始日 〜 終了日"}
+        </span>
+      </button>
+      {open && (
+        <div className="absolute left-0 z-20 mt-1 w-64 max-w-[calc(100vw-2.5rem)] rounded-xl border border-ink-200 bg-white p-3 shadow-lg">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-ink-500">開始日</span>
+            <input type="date" className="input-base" value={from} onChange={(e) => onFrom(e.target.value)} />
+          </label>
+          <label className="mt-3 block">
+            <span className="mb-1 block text-xs font-medium text-ink-500">終了日</span>
+            <input type="date" className="input-base" value={to} onChange={(e) => onTo(e.target.value)} />
+          </label>
+          <div className="mt-3 flex items-center justify-end gap-3">
+            <button type="button" onClick={() => { onFrom(""); onTo(""); }} className="text-xs font-medium text-ink-500 hover:text-ink-700">クリア</button>
+            <button type="button" onClick={() => setOpen(false)} className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700">閉じる</button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
