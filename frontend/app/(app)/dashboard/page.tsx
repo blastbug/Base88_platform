@@ -78,7 +78,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           {/* 新着案件 */}
-          <section className="card p-5">
+          <section className="card overflow-hidden p-5">
             <CardHead title="新着案件" href="/jobs" />
             <div className="mt-4">
               <NewJobsTable jobs={recentJobs} router={router} />
@@ -207,8 +207,8 @@ function NewJobsTable({ jobs, router }: { jobs: Job[]; router: Nav }) {
         </div>
       </div>
 
-      {/* スマホ: カード */}
-      <ul className="divide-y divide-ink-100 overflow-hidden rounded-lg border border-ink-200 md:hidden">
+      {/* スマホ: カード（案件一覧と同じく枠なし・端まで） */}
+      <ul className="-mx-5 -mb-5 divide-y divide-ink-100 border-t border-ink-100 md:hidden">
         {jobs.map((job) => {
           const st = displayJobStatus(job.status, job.application_deadline);
           return (
