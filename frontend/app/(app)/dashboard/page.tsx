@@ -168,42 +168,64 @@ function NewJobsTable({ jobs, router }: { jobs: Job[]; router: Nav }) {
   if (jobs.length === 0) return <div className="rounded-lg border border-ink-200 py-12 text-center text-sm text-ink-500">現在募集中の案件はありません。</div>;
   const th = "border-b border-ink-200 px-4 py-3 text-left text-xs font-semibold text-ink-500";
   return (
-    <div className="overflow-hidden rounded-lg border border-ink-200">
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="bg-ink-50">
-              <th className={th}>引越予定日</th>
-              <th className={th}>出発地 → 到着地</th>
-              <th className={th}>荷物量 / 間取り</th>
-              <th className={th}>募集状況</th>
-              <th className={th}>締切日</th>
-              <th className={`${th} text-right`}>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {jobs.map((job, i) => {
-              const st = displayJobStatus(job.status, job.application_deadline);
-              const td = `px-4 py-3.5 align-middle ${i < jobs.length - 1 ? "border-b border-ink-200" : ""}`;
-              return (
-                <tr key={job.id} className="bg-white">
-                  <td className={`${td} whitespace-nowrap font-medium text-ink-800`}>{dateDow(job.moving_date)}</td>
-                  <td className={`${td} font-medium text-ink-800`}>{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</td>
-                  <td className={`${td} text-ink-600`}>{luggageLayout(job.layout, job.luggage_volume)}</td>
-                  <td className={td}><StatusPill tone={st.tone} label={st.label} /></td>
-                  <td className={`${td} whitespace-nowrap text-ink-600`}>{shortDate(job.application_deadline)}</td>
-                  <td className={`${td} text-right`}>
-                    <button onClick={() => router.push(`/jobs/${job.id}`)} className="rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-600 transition-colors hover:bg-ink-50">
-                      詳細を見る
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+    <>
+      {/* PC・タブレット: テーブル */}
+      <div className="hidden overflow-hidden rounded-lg border border-ink-200 md:block">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="bg-ink-50">
+                <th className={th}>引越予定日</th>
+                <th className={th}>出発地 → 到着地</th>
+                <th className={th}>荷物量 / 間取り</th>
+                <th className={th}>募集状況</th>
+                <th className={th}>締切日</th>
+                <th className={`${th} text-right`}>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              {jobs.map((job, i) => {
+                const st = displayJobStatus(job.status, job.application_deadline);
+                const td = `px-4 py-3.5 align-middle ${i < jobs.length - 1 ? "border-b border-ink-200" : ""}`;
+                return (
+                  <tr key={job.id} className="bg-white">
+                    <td className={`${td} whitespace-nowrap font-medium text-ink-800`}>{dateDow(job.moving_date)}</td>
+                    <td className={`${td} font-medium text-ink-800`}>{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</td>
+                    <td className={`${td} text-ink-600`}>{luggageLayout(job.layout, job.luggage_volume)}</td>
+                    <td className={td}><StatusPill tone={st.tone} label={st.label} /></td>
+                    <td className={`${td} whitespace-nowrap text-ink-600`}>{shortDate(job.application_deadline)}</td>
+                    <td className={`${td} text-right`}>
+                      <button onClick={() => router.push(`/jobs/${job.id}`)} className="rounded-lg border border-ink-200 px-3 py-1.5 text-xs font-semibold text-ink-600 transition-colors hover:bg-ink-50">
+                        詳細を見る
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+
+      {/* スマホ: カード */}
+      <ul className="divide-y divide-ink-100 overflow-hidden rounded-lg border border-ink-200 md:hidden">
+        {jobs.map((job) => {
+          const st = displayJobStatus(job.status, job.application_deadline);
+          return (
+            <li key={job.id}>
+              <button onClick={() => router.push(`/jobs/${job.id}`)} className="block w-full px-4 py-3.5 text-left transition-colors hover:bg-ink-50">
+                <div className="flex items-center justify-between gap-2">
+                  <StatusPill tone={st.tone} label={st.label} />
+                  <span className="text-xs text-ink-400">締切 {shortDate(job.application_deadline)}</span>
+                </div>
+                <div className="mt-2 font-semibold text-ink-800">{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</div>
+                <div className="mt-1 text-sm text-ink-500">{dateDow(job.moving_date)}・{luggageLayout(job.layout, job.luggage_volume)}</div>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </>
   );
 }
 
