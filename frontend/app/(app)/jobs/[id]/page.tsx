@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
 import type { Job } from "@/lib/types";
 import { Badge, Button, EmptyState, LinkButton, Spinner, Textarea } from "@/components/ui";
+import { AttachmentManager } from "@/components/AttachmentManager";
 import { displayJobStatus, formatDate, formatDateTime, formatYen, luggageLayout, route } from "@/lib/format";
 
 export default function JobDetailPage() {
@@ -118,30 +119,12 @@ export default function JobDetailPage() {
 
           <div>
             <div className="mb-2 text-sm font-semibold text-ink-700">添付ファイル <span className="text-xs font-normal text-ink-400">(画像・PDF)</span></div>
-            {job.attachments && job.attachments.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3">
-                {job.attachments.map((a) =>
-                  a.is_image ? (
-                    <a key={a.id} href={a.url} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-lg border border-ink-200">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={a.url} alt={a.name} className="aspect-[4/3] w-full object-cover transition-transform hover:scale-105" />
-                    </a>
-                  ) : (
-                    <a key={a.id} href={a.url} target="_blank" rel="noopener noreferrer" className="flex aspect-[4/3] flex-col items-center justify-center rounded-lg border border-ink-200 bg-ink-50 text-ink-500 hover:bg-ink-100">
-                      <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5zM14 3v5h5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                      <span className="mt-1 max-w-[90%] truncate text-[11px]">{a.name}</span>
-                    </a>
-                  )
-                )}
-              </div>
-            ) : (
-              <div className="flex aspect-[4/3] items-center justify-center rounded-lg border border-dashed border-ink-200 bg-ink-50 text-sm text-ink-400">
-                添付ファイルはありません
-              </div>
-            )}
-            {job.is_owner && job.status !== "completed" && job.status !== "cancelled" && (
-              <AttachmentUploader jobId={job.id} count={job.attachments?.length ?? 0} onUploaded={load} />
-            )}
+            <AttachmentManager
+              jobId={job.id}
+              items={job.attachments ?? []}
+              onChange={(items) => setJob((j) => (j ? { ...j, attachments: items } : j))}
+              editable={job.is_owner && job.status !== "completed" && job.status !== "cancelled"}
+            />
           </div>
         </div>
 
@@ -272,46 +255,3 @@ function ApplyModal({ jobId, onClose, onApplied, setError }: { jobId: number; on
   );
 }
 
-const UPLOAD_ACCEPT = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
-
-function AttachmentUploader({ jobId, count, onUploaded }: { jobId: number; count: number; onUploaded: () => void }) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const remaining = 3 - count;
-
-  async function onFiles(list: FileList | null) {
-    setErr(null);
-    if (!list || list.length === 0) return;
-    const fd = new FormData();
-    let added = 0;
-    for (const f of Array.from(list).slice(0, remaining)) {
-      if (!UPLOAD_ACCEPT.includes(f.type)) { setErr("画像（JPG/PNG/WebP/GIF）またはPDFのみ添付できます。"); continue; }
-      if (f.size > 10 * 1024 * 1024) { setErr("1ファイルあたり最大10MBです。"); continue; }
-      fd.append("files[]", f);
-      added++;
-    }
-    if (added === 0) return;
-    setBusy(true);
-    try {
-      await api(`/jobs/${jobId}/attachments`, { method: "POST", body: fd });
-      onUploaded();
-    } catch (e) {
-      const m = e instanceof ApiError ? ((e.body as { errors?: Record<string, string[]>; message?: string }).errors?.["files.0"]?.[0] ?? (e.body as { message?: string }).message) : null;
-      setErr(m ?? "アップロードに失敗しました。時間をおいて再度お試しください。");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  if (remaining <= 0) return <p className="mt-3 text-xs text-ink-400">添付は上限（3件）に達しています。</p>;
-
-  return (
-    <div className="mt-3">
-      <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf" multiple className="hidden" onChange={(e) => { onFiles(e.target.files); e.target.value = ""; }} />
-      <Button size="sm" variant="secondary" loading={busy} onClick={() => inputRef.current?.click()}>＋ 添付ファイルを追加</Button>
-      {err && <p className="mt-1.5 text-xs text-rose-600">{err}</p>}
-      <p className="mt-1.5 text-xs text-ink-400">残り{remaining}件・JPG / PNG / WebP / GIF / PDF・最大10MB</p>
-    </div>
-  );
-}

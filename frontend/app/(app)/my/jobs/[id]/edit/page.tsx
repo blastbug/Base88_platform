@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
-import type { Job } from "@/lib/types";
+import type { Attachment, Job } from "@/lib/types";
 import { Button, EmptyState, Field, Input, Select, Spinner, Textarea } from "@/components/ui";
+import { AttachmentManager } from "@/components/AttachmentManager";
 import { BUILDING_TYPES, PREFECTURES, TIME_SLOTS, TRUCK_SIZES } from "@/lib/format";
 
 type Errors = Record<string, string[]>;
@@ -30,6 +31,7 @@ export default function EditJobPage() {
   const id = params.id;
 
   const [form, setForm] = useState({ ...EMPTY });
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [loading, setLoading] = useState(true);
   const [blocked, setBlocked] = useState<string | null>(null);
   const [errors, setErrors] = useState<Errors>({});
@@ -71,6 +73,7 @@ export default function EditJobPage() {
           customer_address: j.customer?.address ?? "",
           contact_note: j.customer?.contact_note ?? "",
         });
+        setAttachments(j.attachments ?? []);
       } catch {
         if (active) setBlocked("案件の読み込みに失敗しました。時間をおいて再度お試しください。");
       } finally {
@@ -124,7 +127,7 @@ export default function EditJobPage() {
 
       <div className="card p-6 sm:p-8">
         <h2 className="text-xl font-bold text-ink-900">案件を編集</h2>
-        <p className="mt-1 text-sm text-ink-500">募集中の案件の内容を変更できます。（添付ファイルは案件詳細画面で管理します）</p>
+        <p className="mt-1 text-sm text-ink-500">募集中の案件の内容を変更できます。</p>
 
         {general && <div className="mt-5 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{general}</div>}
 
@@ -207,6 +210,12 @@ export default function EditJobPage() {
           <Field label="備考" error={err("note")}>
             <Textarea rows={3} value={form.note} onChange={set("note")} placeholder="大きな家具・家電あり。丁寧な作業を希望します。" />
           </Field>
+
+          {/* 添付ファイル（追加・削除は即時反映） */}
+          <div>
+            <span className="mb-1.5 block text-sm font-medium text-ink-700">添付ファイル <span className="text-xs font-normal text-ink-400">(画像・PDF、3ファイルまで／変更は即時保存されます)</span></span>
+            <AttachmentManager jobId={Number(id)} items={attachments} onChange={setAttachments} editable />
+          </div>
 
           {/* 顧客情報 */}
           <div className="border-t border-ink-100 pt-6">

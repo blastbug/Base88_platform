@@ -32,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/jobs/{job}/complete', [JobController::class, 'complete']);
     Route::post('/jobs/{job}/cancel', [JobController::class, 'cancel']);
     Route::post('/jobs/{job}/attachments', [JobController::class, 'uploadAttachments']);
+    Route::delete('/jobs/{job}/attachments/{media}', [JobController::class, 'deleteAttachment']);
 
     // 応募（受注側）
     Route::post('/jobs/{job}/apply', [ApplicationController::class, 'store']);

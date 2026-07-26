@@ -399,6 +399,21 @@ class JobController extends Controller
         return response()->json(['message' => '添付ファイルをアップロードしました。']);
     }
 
+    /** 添付ファイルの削除。掲載会社のみ。 */
+    public function deleteAttachment(Request $request, MovingJob $job, int $media): JsonResponse
+    {
+        $this->authorizeOwner($request, $job);
+
+        $item = $job->getMedia('attachments')->firstWhere('id', $media);
+        if (! $item) {
+            abort(404, '添付ファイルが見つかりません。');
+        }
+
+        $item->delete();
+
+        return response()->json(['message' => '添付ファイルを削除しました。']);
+    }
+
     /** 顧客情報の閲覧可否：成約済み かつ 成約会社 のみ true */
     private function canViewCustomer(MovingJob $job, ?int $companyId): bool
     {
