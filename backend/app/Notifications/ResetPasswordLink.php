@@ -2,14 +2,18 @@
 
 namespace App\Notifications;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
  * パスワード再設定メール。フロントエンドの再設定画面へのリンクを送る。
  */
-class ResetPasswordLink extends Notification
+class ResetPasswordLink extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     public function __construct(public string $token) {}
 
     public function via(object $notifiable): array

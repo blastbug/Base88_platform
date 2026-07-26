@@ -3,12 +3,16 @@
 namespace App\Notifications;
 
 use App\Models\Company;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /** 加盟会社の承認（利用開始）通知 */
-class CompanyApproved extends Notification
+class CompanyApproved extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     public function __construct(public Company $company) {}
 
     public function via(object $notifiable): array

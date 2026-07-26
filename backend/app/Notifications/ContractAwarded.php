@@ -3,12 +3,16 @@
 namespace App\Notifications;
 
 use App\Models\MovingJob;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /** 成約時、成約会社（受注側）へ通知 */
-class ContractAwarded extends Notification
+class ContractAwarded extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     public function __construct(public MovingJob $job) {}
 
     public function via(object $notifiable): array

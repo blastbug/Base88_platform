@@ -3,12 +3,16 @@
 namespace App\Notifications;
 
 use App\Models\Company;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /** 担当者追加時の招待メール（パスワード設定リンク付き） */
-class StaffInvitation extends Notification
+class StaffInvitation extends Notification implements ShouldQueue
 {
+    use Queueable;
+
     public function __construct(public Company $company, public string $token) {}
 
     public function via(object $notifiable): array
