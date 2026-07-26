@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\MeController;
 use Illuminate\Support\Facades\Route;
 
 // 認証不要
+Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);

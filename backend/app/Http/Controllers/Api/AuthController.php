@@ -5,15 +5,68 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\User;
+use App\Notifications\CompanyRegistered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    /** 会社登録申請（自己登録）。会社を「承認待ち」で作成し、代表担当者を会社管理者として登録。 */
+    public function register(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'company_name' => ['required', 'string', 'max:100'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:30'],
+            'corporate_number' => ['nullable', 'string', 'max:30'],
+            'invoice_number' => ['nullable', 'string', 'max:30'],
+            'representative_name' => ['required', 'string', 'max:100'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'confirmed', PasswordRule::min(8)],
+        ]);
+
+        $company = DB::transaction(function () use ($data) {
+            $company = Company::create([
+                'name' => $data['company_name'],
+                'address' => $data['address'] ?? null,
+                'phone' => $data['phone'],
+                'corporate_number' => $data['corporate_number'] ?? null,
+                'invoice_number' => $data['invoice_number'] ?? null,
+                'status' => Company::STATUS_PENDING,
+            ]);
+
+            $user = User::create([
+                'company_id' => $company->id,
+                'name' => $data['representative_name'],
+                'email' => $data['email'],
+                'password' => Hash::make($data['password']),
+                'role' => User::ROLE_COMPANY_ADMIN,
+                'is_active' => true,
+            ]);
+            $user->syncRoles([User::ROLE_COMPANY_ADMIN]);
+
+            return $company;
+        });
+
+        // 運営（BASE88管理者）へ申請通知（メール失敗は申請処理を止めない）
+        try {
+            $admins = User::where('role', User::ROLE_PLATFORM_ADMIN)->where('is_active', true)->get();
+            Notification::send($admins, new CompanyRegistered($company));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        return response()->json([
+            'message' => '登録申請を受け付けました。BASE88による承認後にログインいただけます。',
+        ], 201);
+    }
+
     /** ログイン：メール・パスワードを検証し、Sanctum トークンを発行する */
     public function login(Request $request): JsonResponse
     {

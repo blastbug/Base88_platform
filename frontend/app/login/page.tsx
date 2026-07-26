@@ -143,7 +143,7 @@ export default function LoginPage() {
           </form>
 
           <p className="mt-6 text-center text-sm text-ink-500">
-            アカウントをお持ちでない方は <span className="cursor-pointer font-medium text-brand-600 hover:text-brand-700">こちら</span>
+            アカウントをお持ちでない方は <Link href="/register" className="font-medium text-brand-600 hover:text-brand-700">加盟会社の登録申請</Link>
           </p>
         </div>
       </div>
