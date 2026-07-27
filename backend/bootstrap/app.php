@@ -22,6 +22,10 @@ return Application::configure(basePath: dirname(__DIR__))
             Request::HEADER_X_FORWARDED_PORT |
             Request::HEADER_X_FORWARDED_PROTO
         );
+
+        // TUNNEL_URL 設定時、リクエストを公開URLのホスト・スキームに補正する。
+        // （Next プロキシが Host を localhost に化けさせる問題への対処。最初に実行）
+        $middleware->prepend(\App\Http\Middleware\ForcePublicHost::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
