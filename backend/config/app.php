@@ -54,6 +54,10 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    // 公開URL（Dev Tunnel 等でデモ配信する際に、絶対URLを固定するためのホスト）。
+    // 未設定なら通常どおりリクエストのホストを使用する（本番では設定しない）。
+    'tunnel_url' => env('TUNNEL_URL'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
