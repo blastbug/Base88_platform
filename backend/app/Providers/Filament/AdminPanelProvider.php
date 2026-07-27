@@ -10,6 +10,7 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Enums\Width;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -27,6 +28,9 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName('BASE88 管理')
+            // コンテンツを全幅で表示（既定の max-w-7xl だとワイド画面で
+            // 左右に大きな余白が出るため）。
+            ->maxContentWidth(Width::Full)
             ->colors([
                 'primary' => Color::Blue,
             ])
