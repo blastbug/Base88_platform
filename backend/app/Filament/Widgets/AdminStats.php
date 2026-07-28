@@ -14,6 +14,8 @@ class AdminStats extends StatsOverviewWidget
 {
     protected static bool $isLazy = false;
 
+    protected static ?int $sort = 1;
+
     protected function getStats(): array
     {
         $now = Carbon::now();

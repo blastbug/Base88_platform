@@ -74,6 +74,14 @@ class AdminPanelProvider extends PanelProvider
                       .fi-wi-stats-overview-stat { border: 1px solid #e2e8f0; border-radius: 0.85rem; box-shadow: 0 1px 2px rgba(15,23,42,.04); transition: box-shadow .15s ease, transform .15s ease; }
                       .fi-wi-stats-overview-stat:hover { box-shadow: 0 8px 20px rgba(15,23,42,.08); transform: translateY(-2px); }
 
+                      /* ===== ダッシュボードのカード登場（フェードのみ・transformは使わない） ===== */
+                      /* transform を使うとチャートの初期サイズ測定と競合するため opacity のみ */
+                      @keyframes fiFade { from { opacity: 0; } to { opacity: 1; } }
+                      .fi-wi { animation: fiFade .5s ease both; }
+                      .fi-wi-chart { transition: box-shadow .2s ease; }
+                      .fi-wi-chart:hover { box-shadow: 0 10px 24px rgba(15,23,42,.08); }
+                      @media (prefers-reduced-motion: reduce) { .fi-wi { animation: none; } }
+
                       /* ===== ダークモード ===== */
                       .dark .fi-main-ctn { background-color: #020617; }
                       .dark .fi-topbar > * { background-color: #0f172a; border-bottom-color: #1e293b; }
@@ -97,6 +105,8 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Widgets\AdminStats::class,
                 \App\Filament\Widgets\JobsTrendChart::class,
                 \App\Filament\Widgets\ContractsTrendChart::class,
+                \App\Filament\Widgets\JobStatusChart::class,
+                \App\Filament\Widgets\RecentApplications::class,
             ])
             ->middleware([
                 EncryptCookies::class,
