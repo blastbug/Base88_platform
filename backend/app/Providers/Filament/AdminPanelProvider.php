@@ -118,6 +118,49 @@ class AdminPanelProvider extends PanelProvider
                     </style>
                     HTML)
             )
+            // Livewire の通信がタイムアウト等で失敗した際、既定の「黒いエラー
+            // モーダル」を出さず、控えめな通知だけ表示して操作を継続可能にする。
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): HtmlString => new HtmlString(<<<'HTML'
+                    <script>
+                      document.addEventListener('livewire:init', function () {
+                        if (!window.Livewire || typeof Livewire.hook !== 'function') return;
+                        var TRANSIENT = [0, 408, 502, 503, 504, 429];
+                        Livewire.hook('request', function (ctx) {
+                          if (typeof ctx.fail !== 'function') return;
+                          ctx.fail(function (info) {
+                            var status = info && info.status;
+                            if (TRANSIENT.indexOf(status) !== -1) {
+                              if (typeof info.preventDefault === 'function') info.preventDefault();
+                              window.__base88Toast && window.__base88Toast('通信が混み合っています。少し待って再度お試しください。');
+                            }
+                          });
+                        });
+                      });
+                      window.__base88Toast = function (msg) {
+                        try {
+                          var id = 'base88-toast';
+                          var el = document.getElementById(id);
+                          if (el) el.remove();
+                          el = document.createElement('div');
+                          el.id = id;
+                          el.textContent = msg;
+                          el.style.cssText = 'position:fixed;right:20px;bottom:20px;z-index:2147483647;'
+                            + 'background:#111827;color:#fff;padding:12px 16px;border-radius:10px;'
+                            + 'box-shadow:0 10px 30px rgba(0,0,0,.3);font-size:14px;max-width:340px;'
+                            + 'opacity:0;transition:opacity .25s ease;';
+                          document.body.appendChild(el);
+                          requestAnimationFrame(function () { el.style.opacity = '1'; });
+                          setTimeout(function () {
+                            el.style.opacity = '0';
+                            setTimeout(function () { el.remove(); }, 300);
+                          }, 4500);
+                        } catch (e) {}
+                      };
+                    </script>
+                    HTML)
+            )
             ->colors([
                 'primary' => Color::Blue,
             ])
