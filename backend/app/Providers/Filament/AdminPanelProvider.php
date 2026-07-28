@@ -75,8 +75,10 @@ class AdminPanelProvider extends PanelProvider
                       .fi-main-ctn { background-color: #f1f5f9; }
                       .fi-header-heading { letter-spacing: -0.01em; }
 
-                      /* ===== トップバー：白（コンテンツ上の独立した白いバー） ===== */
-                      .fi-topbar { background-color: #ffffff; border-bottom: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(15,23,42,.05); }
+                      /* ===== トップバー：白（コンテンツ上の独立した白いバー） =====
+                         全幅のグレー境界線は使わず影のみで区切る（濃紺ブランド帯の下に
+                         明るい線が出るのを防ぐ）。 */
+                      .fi-topbar { background-color: #ffffff; box-shadow: 0 1px 3px rgba(15,23,42,.07); }
                       /* 左上ブランド領域を、サイドバー幅の濃紺ブロックにして"サイドバーの続き"にする（PCのみ） */
                       @media (min-width: 1024px) {
                         .fi-topbar-start {
@@ -88,10 +90,12 @@ class AdminPanelProvider extends PanelProvider
                           align-items: center;
                           background-color: #1f2937;
                           border-right: 0;
+                          border-bottom: 1px solid rgba(255,255,255,0.06); /* アプリと同じ控えめな線 */
                         }
                         .fi-topbar-start .fi-logo { color: #ffffff; }
                       }
-                      .dark .fi-topbar { background-color: #0f172a; border-bottom-color: #1e293b; }
+                      /* ナイトモード：ヘッダーバーをサイドバーと同色(#1f2937)に統一 */
+                      .dark .fi-topbar { background-color: #1f2937; box-shadow: none; }
 
                       /* ===== 統計カードの質感（浮き上がり） ===== */
                       .fi-wi-stats-overview-stat { border: 1px solid #e2e8f0; border-radius: 0.85rem; box-shadow: 0 1px 2px rgba(15,23,42,.04); transition: box-shadow .15s ease, transform .15s ease; }
