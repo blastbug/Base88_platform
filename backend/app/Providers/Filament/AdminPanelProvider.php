@@ -65,10 +65,22 @@ class AdminPanelProvider extends PanelProvider
                       .fi-main-sidebar .fi-icon-btn:hover { color: #ffffff; background-color: #1e293b; }
                       .fi-main-sidebar .fi-dropdown-list { background-color: #ffffff; }
 
-                      /* ===== メイン領域・トップバー ===== */
+                      /* ===== メイン領域 ===== */
                       .fi-main-ctn { background-color: #f1f5f9; }
-                      .fi-topbar > * { background-color: #ffffff; border-bottom: 1px solid #e2e8f0; box-shadow: none; }
                       .fi-header-heading { letter-spacing: -0.01em; }
+
+                      /* ===== トップバー（サイドバーと同じ濃紺で統一） ===== */
+                      .fi-topbar, .fi-topbar > * { background-color: #0f172a !important; border-bottom: 1px solid #1e293b; box-shadow: none; }
+                      .fi-topbar .fi-logo { color: #f8fafc; }
+                      /* グローバル検索を濃色フィールドに */
+                      .fi-topbar .fi-input-wrp { background-color: #1e293b; box-shadow: inset 0 0 0 1px #334155; }
+                      .fi-topbar .fi-input { color: #e2e8f0; background-color: transparent; }
+                      .fi-topbar .fi-input::placeholder { color: #94a3b8; }
+                      .fi-topbar .fi-input-wrp-prefix { color: #94a3b8; }
+                      /* アイコンボタン・アバター */
+                      .fi-topbar .fi-icon-btn { color: #cbd5e1; }
+                      .fi-topbar .fi-icon-btn:hover { color: #ffffff; background-color: #1e293b; }
+                      .fi-topbar .fi-user-avatar, .fi-topbar .fi-avatar { outline: 2px solid #334155; outline-offset: 0; }
 
                       /* ===== 統計カードの質感（浮き上がり） ===== */
                       .fi-wi-stats-overview-stat { border: 1px solid #e2e8f0; border-radius: 0.85rem; box-shadow: 0 1px 2px rgba(15,23,42,.04); transition: box-shadow .15s ease, transform .15s ease; }
@@ -84,7 +96,6 @@ class AdminPanelProvider extends PanelProvider
 
                       /* ===== ダークモード ===== */
                       .dark .fi-main-ctn { background-color: #020617; }
-                      .dark .fi-topbar > * { background-color: #0f172a; border-bottom-color: #1e293b; }
                       .dark .fi-wi-stats-overview-stat { border-color: #1e293b; }
                     </style>
                     HTML)
