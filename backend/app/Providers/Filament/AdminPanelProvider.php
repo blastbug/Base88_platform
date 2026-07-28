@@ -94,8 +94,11 @@ class AdminPanelProvider extends PanelProvider
                         }
                         .fi-topbar-start .fi-logo { color: #ffffff; }
                       }
-                      /* ナイトモード：ヘッダーバーをサイドバーと同色(#1f2937)に統一 */
-                      .dark .fi-topbar { background-color: #1f2937; box-shadow: none; }
+                      /* ナイトモード：サイドバー・ヘッダーを「元のナイトモード・ヘッダー色」(#0f172a)で統一 */
+                      .dark .fi-main-sidebar { background-color: #0f172a !important; }
+                      .dark .fi-main-sidebar .fi-sidebar-header { background-color: #0f172a; }
+                      .dark .fi-topbar { background-color: #0f172a; box-shadow: none; }
+                      .dark .fi-topbar-start { background-color: #0f172a; }
 
                       /* ===== 統計カードの質感（浮き上がり） ===== */
                       .fi-wi-stats-overview-stat { border: 1px solid #e2e8f0; border-radius: 0.85rem; box-shadow: 0 1px 2px rgba(15,23,42,.04); transition: box-shadow .15s ease, transform .15s ease; }
