@@ -37,18 +37,47 @@ class AdminPanelProvider extends PanelProvider
             // コンテンツを全幅で表示（既定の max-w-7xl だとワイド画面で
             // 左右に大きな余白が出るため）。
             ->maxContentWidth(Width::Full)
-            // サイドバーとメインコンテンツの境界を視覚的に明確化する。
+            // 管理画面のデザイン刷新（ブランド濃紺サイドバー・質感調整）。
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): HtmlString => new HtmlString(<<<'HTML'
                     <style>
-                      /* 左ナビとメイン領域を区別：ナビは白＋右境界線、メインは薄いグレー */
-                      .fi-sidebar { background-color: #ffffff; border-right: 1px solid rgb(226 232 240); }
-                      .fi-main-ctn { background-color: rgb(248 250 252); }
-                      .fi-topbar > * { border-bottom: 1px solid rgb(226 232 240); }
-                      .dark .fi-sidebar { background-color: rgb(15 23 42); border-right-color: rgb(30 41 59); }
-                      .dark .fi-main-ctn { background-color: rgb(2 6 23); }
-                      .dark .fi-topbar > * { border-bottom-color: rgb(30 41 59); }
+                      /* ===== ブランド濃紺サイドバー ===== */
+                      .fi-main-sidebar { background-color: #0f172a !important; border-right: 1px solid #1e293b; }
+                      .fi-main-sidebar .fi-sidebar-header { background-color: #0f172a; border-bottom: 1px solid #1e293b; box-shadow: none; }
+                      .fi-main-sidebar .fi-logo { color: #f8fafc; }
+                      /* ナビ項目（通常） */
+                      .fi-main-sidebar .fi-sidebar-item-btn { color: #cbd5e1; border-radius: 0.5rem; font-weight: 500; }
+                      .fi-main-sidebar .fi-sidebar-item-icon { color: #94a3b8; }
+                      /* ホバー */
+                      .fi-main-sidebar .fi-sidebar-item-btn:hover { background-color: #1e293b; color: #ffffff; }
+                      .fi-main-sidebar .fi-sidebar-item-btn:hover .fi-sidebar-item-icon { color: #e2e8f0; }
+                      /* アクティブ（ブランドブルーのピル） */
+                      .fi-main-sidebar .fi-sidebar-item.fi-active .fi-sidebar-item-btn,
+                      .fi-main-sidebar .fi-sidebar-item-btn[aria-current="page"] { background-color: #2563eb; color: #ffffff; box-shadow: 0 1px 2px rgba(2,6,23,.4); }
+                      .fi-main-sidebar .fi-sidebar-item.fi-active .fi-sidebar-item-icon,
+                      .fi-main-sidebar .fi-sidebar-item-btn[aria-current="page"] .fi-sidebar-item-icon { color: #ffffff; }
+                      /* グループ見出し */
+                      .fi-main-sidebar .fi-sidebar-group-label { color: #64748b; }
+                      /* フッター・各種アイコンボタン */
+                      .fi-main-sidebar .fi-sidebar-footer { border-top: 1px solid #1e293b; }
+                      .fi-main-sidebar .fi-icon-btn { color: #94a3b8; }
+                      .fi-main-sidebar .fi-icon-btn:hover { color: #ffffff; background-color: #1e293b; }
+                      .fi-main-sidebar .fi-dropdown-list { background-color: #ffffff; }
+
+                      /* ===== メイン領域・トップバー ===== */
+                      .fi-main-ctn { background-color: #f1f5f9; }
+                      .fi-topbar > * { background-color: #ffffff; border-bottom: 1px solid #e2e8f0; box-shadow: none; }
+                      .fi-header-heading { letter-spacing: -0.01em; }
+
+                      /* ===== 統計カードの質感（浮き上がり） ===== */
+                      .fi-wi-stats-overview-stat { border: 1px solid #e2e8f0; border-radius: 0.85rem; box-shadow: 0 1px 2px rgba(15,23,42,.04); transition: box-shadow .15s ease, transform .15s ease; }
+                      .fi-wi-stats-overview-stat:hover { box-shadow: 0 8px 20px rgba(15,23,42,.08); transform: translateY(-2px); }
+
+                      /* ===== ダークモード ===== */
+                      .dark .fi-main-ctn { background-color: #020617; }
+                      .dark .fi-topbar > * { background-color: #0f172a; border-bottom-color: #1e293b; }
+                      .dark .fi-wi-stats-overview-stat { border-color: #1e293b; }
                     </style>
                     HTML)
             )
