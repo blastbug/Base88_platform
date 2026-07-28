@@ -69,18 +69,23 @@ class AdminPanelProvider extends PanelProvider
                       .fi-main-ctn { background-color: #f1f5f9; }
                       .fi-header-heading { letter-spacing: -0.01em; }
 
-                      /* ===== トップバー（サイドバーと同じ濃紺で統一） ===== */
-                      .fi-topbar, .fi-topbar > * { background-color: #0f172a !important; border-bottom: 1px solid #1e293b; box-shadow: none; }
-                      .fi-topbar .fi-logo { color: #f8fafc; }
-                      /* グローバル検索を濃色フィールドに */
-                      .fi-topbar .fi-input-wrp { background-color: #1e293b; box-shadow: inset 0 0 0 1px #334155; }
-                      .fi-topbar .fi-input { color: #e2e8f0; background-color: transparent; }
-                      .fi-topbar .fi-input::placeholder { color: #94a3b8; }
-                      .fi-topbar .fi-input-wrp-prefix { color: #94a3b8; }
-                      /* アイコンボタン・アバター */
-                      .fi-topbar .fi-icon-btn { color: #cbd5e1; }
-                      .fi-topbar .fi-icon-btn:hover { color: #ffffff; background-color: #1e293b; }
-                      .fi-topbar .fi-user-avatar, .fi-topbar .fi-avatar { outline: 2px solid #334155; outline-offset: 0; }
+                      /* ===== トップバー：白（コンテンツ上の独立した白いバー） ===== */
+                      .fi-topbar { background-color: #ffffff; border-bottom: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(15,23,42,.05); }
+                      /* 左上ブランド領域を、サイドバー幅の濃紺ブロックにして"サイドバーの続き"にする（PCのみ） */
+                      @media (min-width: 1024px) {
+                        .fi-topbar-start {
+                          align-self: stretch;
+                          width: 20rem;                 /* = サイドバー幅 320px */
+                          margin-left: -1rem;           /* トップバー左パディング(16px)を打ち消し左端へ */
+                          padding-left: 1.5rem;
+                          display: flex;
+                          align-items: center;
+                          background-color: #0f172a;
+                          border-right: 1px solid #1e293b;
+                        }
+                        .fi-topbar-start .fi-logo { color: #f8fafc; }
+                      }
+                      .dark .fi-topbar { background-color: #0f172a; border-bottom-color: #1e293b; }
 
                       /* ===== 統計カードの質感（浮き上がり） ===== */
                       .fi-wi-stats-overview-stat { border: 1px solid #e2e8f0; border-radius: 0.85rem; box-shadow: 0 1px 2px rgba(15,23,42,.04); transition: box-shadow .15s ease, transform .15s ease; }
