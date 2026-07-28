@@ -30,6 +30,10 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName('BASE88 管理')
+            // SPA モード：画面遷移を wire:navigate の部分更新にする。
+            // 既定ではナビが通常リンクでフルページ再読込になり、毎回全アセットを
+            // 取り直して遅く・全体が再描画されて見えるため有効化する。
+            ->spa()
             // コンテンツを全幅で表示（既定の max-w-7xl だとワイド画面で
             // 左右に大きな余白が出るため）。
             ->maxContentWidth(Width::Full)
