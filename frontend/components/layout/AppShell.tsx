@@ -76,7 +76,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const sidebar = (
     <div className="flex h-full flex-col bg-nav-800 text-ink-300">
-      <div className="px-5 py-5">
+      <div className="flex h-16 items-center border-b border-white/5 px-5">
         <Logo variant="light" />
       </div>
       <nav className="mt-2 flex-1 space-y-0.5 px-3">
@@ -116,7 +116,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="flex min-w-0 flex-col">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-ink-200 bg-white px-4 py-3 sm:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-ink-200 bg-white px-4 shadow-sm sm:px-6">
           <div className="flex items-center gap-3">
             <button onClick={() => setDrawer(true)} className="rounded-lg p-1.5 text-ink-600 hover:bg-ink-100 lg:hidden" aria-label="メニュー">
               <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" /></svg>
