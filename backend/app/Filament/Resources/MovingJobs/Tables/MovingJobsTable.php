@@ -4,6 +4,7 @@ namespace App\Filament\Resources\MovingJobs\Tables;
 
 use App\Models\MovingJob;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -49,6 +50,7 @@ class MovingJobsTable
             ])
             ->recordActions([
                 ViewAction::make()->label('詳細'),
+                EditAction::make()->label('編集'),
                 DeleteAction::make()->label('削除'),
             ])
             ->defaultSort('created_at', 'desc');

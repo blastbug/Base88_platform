@@ -4,6 +4,7 @@ namespace App\Filament\Resources\JobApplications\Tables;
 
 use App\Models\JobApplication;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class JobApplicationsTable
@@ -29,6 +30,13 @@ class JobApplicationsTable
                         default => 'gray',
                     }),
                 TextColumn::make('created_at')->label('応募日時')->dateTime('Y/m/d H:i')->sortable(),
+            ])
+            ->filters([
+                SelectFilter::make('status')->label('ステータス')->options([
+                    JobApplication::STATUS_APPLIED => '応募中',
+                    JobApplication::STATUS_ACCEPTED => '成約',
+                    JobApplication::STATUS_REJECTED => '不成立',
+                ]),
             ])
             ->defaultSort('created_at', 'desc');
     }

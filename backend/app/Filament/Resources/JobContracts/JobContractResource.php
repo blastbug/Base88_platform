@@ -18,6 +18,8 @@ class JobContractResource extends Resource
 
     protected static ?string $navigationLabel = '成約管理';
 
+    protected static string|\UnitEnum|null $navigationGroup = '業務管理';
+
     protected static ?string $modelLabel = '成約';
 
     protected static ?string $pluralModelLabel = '成約';

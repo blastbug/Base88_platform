@@ -28,6 +28,8 @@ class BroadcastAnnouncement extends Page implements HasForms
 
     protected static ?string $navigationLabel = 'お知らせ配信';
 
+    protected static string|\UnitEnum|null $navigationGroup = '運営・設定';
+
     protected static ?string $title = 'お知らせ配信';
 
     protected static ?int $navigationSort = 7;

@@ -24,6 +24,8 @@ class CompanyResource extends Resource
 
     protected static ?string $navigationLabel = '加盟会社管理';
 
+    protected static string|\UnitEnum|null $navigationGroup = '業務管理';
+
     protected static ?string $modelLabel = '加盟会社';
 
     protected static ?string $pluralModelLabel = '加盟会社';

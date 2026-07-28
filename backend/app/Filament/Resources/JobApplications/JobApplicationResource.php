@@ -18,6 +18,8 @@ class JobApplicationResource extends Resource
 
     protected static ?string $navigationLabel = '応募管理';
 
+    protected static string|\UnitEnum|null $navigationGroup = '業務管理';
+
     protected static ?string $modelLabel = '応募';
 
     protected static ?string $pluralModelLabel = '応募';

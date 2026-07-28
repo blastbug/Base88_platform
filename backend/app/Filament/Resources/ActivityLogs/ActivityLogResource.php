@@ -18,6 +18,8 @@ class ActivityLogResource extends Resource
 
     protected static ?string $navigationLabel = '操作ログ';
 
+    protected static string|\UnitEnum|null $navigationGroup = '運営・設定';
+
     protected static ?string $modelLabel = '操作ログ';
 
     protected static ?string $pluralModelLabel = '操作ログ';

@@ -24,6 +24,8 @@ class MovingJobResource extends Resource
 
     protected static ?string $navigationLabel = '案件管理';
 
+    protected static string|\UnitEnum|null $navigationGroup = '業務管理';
+
     protected static ?string $modelLabel = '案件';
 
     protected static ?string $pluralModelLabel = '案件';
