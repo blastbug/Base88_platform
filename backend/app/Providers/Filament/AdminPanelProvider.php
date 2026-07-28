@@ -37,32 +37,38 @@ class AdminPanelProvider extends PanelProvider
             // コンテンツを全幅で表示（既定の max-w-7xl だとワイド画面で
             // 左右に大きな余白が出るため）。
             ->maxContentWidth(Width::Full)
+            // サイドバー幅を加盟会社アプリと同じ 15rem に（既定 20rem は広すぎ）。
+            ->sidebarWidth('15rem')
             // 管理画面のデザイン刷新（ブランド濃紺サイドバー・質感調整）。
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): HtmlString => new HtmlString(<<<'HTML'
                     <style>
-                      /* ===== ブランド濃紺サイドバー ===== */
-                      .fi-main-sidebar { background-color: #0f172a !important; border-right: 1px solid #1e293b; }
-                      .fi-main-sidebar .fi-sidebar-header { background-color: #0f172a; border-bottom: 1px solid #1e293b; box-shadow: none; }
-                      .fi-main-sidebar .fi-logo { color: #f8fafc; }
-                      /* ナビ項目（通常） */
+                      /* ===== ブランドサイドバー（加盟会社アプリと同色 nav-800=#1f2937） ===== */
+                      .fi-main-sidebar { background-color: #1f2937 !important; border-right: 0; }
+                      .fi-main-sidebar .fi-sidebar-header { background-color: #1f2937; box-shadow: none; }
+                      .fi-main-sidebar .fi-logo { color: #ffffff; }
+                      /* ナビ項目（通常）— 文字・アイコンをはっきり表示（ink-300 / ink-400 を明示指定） */
                       .fi-main-sidebar .fi-sidebar-item-btn { color: #cbd5e1; border-radius: 0.5rem; font-weight: 500; }
+                      .fi-main-sidebar .fi-sidebar-item-label { color: #cbd5e1; }
                       .fi-main-sidebar .fi-sidebar-item-icon { color: #94a3b8; }
-                      /* ホバー */
-                      .fi-main-sidebar .fi-sidebar-item-btn:hover { background-color: #1e293b; color: #ffffff; }
+                      /* ホバー（アプリと同じ 白5%） */
+                      .fi-main-sidebar .fi-sidebar-item-btn:hover { background-color: rgba(255,255,255,0.06); }
+                      .fi-main-sidebar .fi-sidebar-item-btn:hover .fi-sidebar-item-label { color: #ffffff; }
                       .fi-main-sidebar .fi-sidebar-item-btn:hover .fi-sidebar-item-icon { color: #e2e8f0; }
-                      /* アクティブ（ブランドブルーのピル） */
+                      /* アクティブ（brand-600 のピル・白文字） */
                       .fi-main-sidebar .fi-sidebar-item.fi-active .fi-sidebar-item-btn,
-                      .fi-main-sidebar .fi-sidebar-item-btn[aria-current="page"] { background-color: #2563eb; color: #ffffff; box-shadow: 0 1px 2px rgba(2,6,23,.4); }
+                      .fi-main-sidebar .fi-sidebar-item-btn[aria-current="page"] { background-color: #2563eb; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+                      .fi-main-sidebar .fi-sidebar-item.fi-active .fi-sidebar-item-label,
+                      .fi-main-sidebar .fi-sidebar-item-btn[aria-current="page"] .fi-sidebar-item-label,
                       .fi-main-sidebar .fi-sidebar-item.fi-active .fi-sidebar-item-icon,
                       .fi-main-sidebar .fi-sidebar-item-btn[aria-current="page"] .fi-sidebar-item-icon { color: #ffffff; }
-                      /* グループ見出し */
-                      .fi-main-sidebar .fi-sidebar-group-label { color: #64748b; }
+                      /* グループ見出し（読める程度に） */
+                      .fi-main-sidebar .fi-sidebar-group-label { color: #9ca3af; }
                       /* フッター・各種アイコンボタン */
-                      .fi-main-sidebar .fi-sidebar-footer { border-top: 1px solid #1e293b; }
-                      .fi-main-sidebar .fi-icon-btn { color: #94a3b8; }
-                      .fi-main-sidebar .fi-icon-btn:hover { color: #ffffff; background-color: #1e293b; }
+                      .fi-main-sidebar .fi-sidebar-footer { border-top: 1px solid rgba(255,255,255,0.06); }
+                      .fi-main-sidebar .fi-icon-btn { color: #9ca3af; }
+                      .fi-main-sidebar .fi-icon-btn:hover { color: #ffffff; background-color: rgba(255,255,255,0.06); }
                       .fi-main-sidebar .fi-dropdown-list { background-color: #ffffff; }
 
                       /* ===== メイン領域 ===== */
@@ -75,15 +81,15 @@ class AdminPanelProvider extends PanelProvider
                       @media (min-width: 1024px) {
                         .fi-topbar-start {
                           align-self: stretch;
-                          width: 20rem;                 /* = サイドバー幅 320px */
+                          width: 15rem;                 /* = サイドバー幅（アプリと同じ 240px） */
                           margin-left: -1rem;           /* トップバー左パディング(16px)を打ち消し左端へ */
                           padding-left: 1.5rem;
                           display: flex;
                           align-items: center;
-                          background-color: #0f172a;
-                          border-right: 1px solid #1e293b;
+                          background-color: #1f2937;
+                          border-right: 0;
                         }
-                        .fi-topbar-start .fi-logo { color: #f8fafc; }
+                        .fi-topbar-start .fi-logo { color: #ffffff; }
                       }
                       .dark .fi-topbar { background-color: #0f172a; border-bottom-color: #1e293b; }
 
