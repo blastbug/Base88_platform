@@ -22,14 +22,38 @@ const ic = (d: string) => (
   </svg>
 );
 
-const NAV: NavItem[] = [
-  { href: "/dashboard", label: "ダッシュボード", match: (p) => p === "/dashboard", icon: ic("M3 12l9-9 9 9M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9") },
-  { href: "/jobs", label: "案件一覧", match: (p) => p === "/jobs" || (p.startsWith("/jobs/") && p !== "/jobs/new"), icon: ic("M4 6h16M4 12h16M4 18h16") },
-  { href: "/jobs/new", label: "案件を投稿", match: (p) => p === "/jobs/new", icon: ic("M12 5v14M5 12h14") },
-  { href: "/my/jobs", label: "自社案件一覧", match: (p) => p.startsWith("/my/jobs"), icon: ic("M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-3M9 3v4h6V3M9 12h6M9 16h4") },
-  { href: "/my/applications", label: "応募管理", match: (p) => p.startsWith("/my/applications"), icon: ic("M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z") },
-  { href: "/my/contracts", label: "成約管理", match: (p) => p.startsWith("/my/contracts"), icon: ic("M9 12l2 2 4-4M7.5 4.2a2 2 0 0 1 1.8-1.1h5.4a2 2 0 0 1 1.8 1.1M4 7h16v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7z") },
-  { href: "/mypage", label: "マイページ", match: (p) => p.startsWith("/mypage"), icon: ic("M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c0-3.3 3.6-6 8-6s8 2.7 8 6") },
+interface NavGroup {
+  label?: string;
+  items: NavItem[];
+}
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    items: [
+      { href: "/dashboard", label: "ダッシュボード", match: (p) => p === "/dashboard", icon: ic("M3 12l9-9 9 9M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9") },
+    ],
+  },
+  {
+    label: "案件",
+    items: [
+      { href: "/jobs", label: "案件一覧", match: (p) => p === "/jobs" || (p.startsWith("/jobs/") && p !== "/jobs/new"), icon: ic("M4 6h16M4 12h16M4 18h16") },
+      { href: "/jobs/new", label: "案件を投稿", match: (p) => p === "/jobs/new", icon: ic("M12 5v14M5 12h14") },
+      { href: "/my/jobs", label: "自社案件一覧", match: (p) => p.startsWith("/my/jobs"), icon: ic("M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-3M9 3v4h6V3M9 12h6M9 16h4") },
+    ],
+  },
+  {
+    label: "取引管理",
+    items: [
+      { href: "/my/applications", label: "応募管理", match: (p) => p.startsWith("/my/applications"), icon: ic("M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z") },
+      { href: "/my/contracts", label: "成約管理", match: (p) => p.startsWith("/my/contracts"), icon: ic("M9 12l2 2 4-4M7.5 4.2a2 2 0 0 1 1.8-1.1h5.4a2 2 0 0 1 1.8 1.1M4 7h16v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7z") },
+    ],
+  },
+  {
+    label: "アカウント",
+    items: [
+      { href: "/mypage", label: "マイページ", match: (p) => p.startsWith("/mypage"), icon: ic("M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c0-3.3 3.6-6 8-6s8 2.7 8 6") },
+    ],
+  },
 ];
 
 function titleFor(path: string): string {
@@ -79,23 +103,34 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex h-16 items-center border-b border-white/5 px-5">
         <Logo variant="light" />
       </div>
-      <nav className="mt-2 flex-1 space-y-0.5 px-3">
-        {NAV.map((item) => {
-          const on = item.match(pathname);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setDrawer(false)}
-              className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                on ? "bg-brand-600 text-white shadow-sm" : "text-ink-300 hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <span className={on ? "text-white" : "text-ink-400"}>{item.icon}</span>
-              {item.label}
-            </Link>
-          );
-        })}
+      <nav className="mt-3 flex-1 overflow-y-auto px-3 pb-4">
+        {NAV_GROUPS.map((group, gi) => (
+          <div key={gi} className={gi > 0 ? "mt-5" : ""}>
+            {group.label && (
+              <div className="mb-1 px-3 text-[11px] font-semibold tracking-wide text-ink-400">
+                {group.label}
+              </div>
+            )}
+            <div className="space-y-0.5">
+              {group.items.map((item) => {
+                const on = item.match(pathname);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setDrawer(false)}
+                    className={`relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                      on ? "bg-brand-600 text-white shadow-sm" : "text-ink-300 hover:bg-white/5 hover:text-white"
+                    }`}
+                  >
+                    <span className={on ? "text-white" : "text-ink-400"}>{item.icon}</span>
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
       <div className="px-5 py-4 text-[11px] text-ink-500">© 2026 BASE88</div>
     </div>
