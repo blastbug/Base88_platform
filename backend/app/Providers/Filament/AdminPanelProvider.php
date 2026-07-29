@@ -93,6 +93,18 @@ class AdminPanelProvider extends PanelProvider
                           border-bottom: 1px solid rgba(255,255,255,0.06); /* アプリと同じ控えめな線 */
                         }
                         .fi-topbar-start .fi-logo { color: #ffffff; }
+                        /* グローバル検索をブランド帯の右隣（左寄り）へ移動 */
+                        .fi-topbar { position: relative; }
+                        .fi-topbar .fi-global-search-ctn {
+                          position: absolute;
+                          left: calc(15rem + 1.5rem);   /* ブランド帯(240px)の右＋余白 */
+                          top: 50%;
+                          transform: translateY(-50%);
+                          width: 26rem;
+                          max-width: calc(100% - 15rem - 12rem);
+                          margin: 0;
+                        }
+                        .fi-topbar .fi-global-search { width: 100%; }
                       }
                       /* ナイトモード：サイドバー・ヘッダーを「元のナイトモード・ヘッダー色」(#0f172a)で統一 */
                       .dark .fi-main-sidebar { background-color: #0f172a !important; }
