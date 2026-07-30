@@ -8,6 +8,7 @@ use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Spatie\Activitylog\Models\Activity;
 
 class ActivityLogResource extends Resource
@@ -29,6 +30,13 @@ class ActivityLogResource extends Resource
     public static function canCreate(): bool
     {
         return false;
+    }
+
+    /** 運営者向けの操作ログは業務操作のみ表示（ログイン等のアクセスログは除外し、
+     *  開発者専用の「アクセス・活動ログ」でのみ参照する）。 */
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->where('log_name', 'operation');
     }
 
     public static function table(Table $table): Table

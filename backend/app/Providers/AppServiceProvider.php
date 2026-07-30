@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -31,5 +34,43 @@ class AppServiceProvider extends ServiceProvider
                 URL::forceScheme('https');
             }
         }
+
+        // 管理画面（Filament / web ガード）のログイン・ログアウトを
+        // アクセス・活動ログ(log_name=access)に記録する。API(sanctum)側の
+        // ログインは AuthController で記録するため、ここでは web のみ対象。
+        Event::listen(Login::class, function (Login $event): void {
+            if ($event->guard !== 'web') {
+                return;
+            }
+            try {
+                activity('access')->causedBy($event->user)
+                    ->withProperties([
+                        'type' => 'login',
+                        'email' => $event->user->email ?? null,
+                        'role' => $event->user->role ?? null,
+                        'ip' => request()->ip(),
+                        'ua' => substr((string) request()->userAgent(), 0, 255),
+                        'panel' => 'admin',
+                    ])
+                    ->event('login')
+                    ->log('管理画面にログイン');
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        });
+
+        Event::listen(Logout::class, function (Logout $event): void {
+            if ($event->guard !== 'web' || ! $event->user) {
+                return;
+            }
+            try {
+                activity('access')->causedBy($event->user)
+                    ->withProperties(['type' => 'logout', 'email' => $event->user->email ?? null, 'panel' => 'admin'])
+                    ->event('logout')
+                    ->log('管理画面からログアウト');
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        });
     }
 }

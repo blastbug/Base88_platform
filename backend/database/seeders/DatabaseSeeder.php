@@ -34,6 +34,22 @@ class DatabaseSeeder extends Seeder
         );
         $admin->syncRoles([User::ROLE_PLATFORM_ADMIN]);
 
+        // 開発者（案件受託者）専用アカウント。
+        // 「アクセス・活動ログ」画面のみ追加で閲覧可能。クライアントには非表示。
+        // ※ is_developer は非fillableのため forceFill で設定。
+        $dev = User::updateOrCreate(
+            ['email' => 'dev@base88.local'],
+            [
+                'name' => '開発者',
+                'password' => Hash::make('devlog2026'), // ※必要に応じて変更
+                'role' => User::ROLE_PLATFORM_ADMIN,
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]
+        );
+        $dev->forceFill(['is_developer' => true])->save();
+        $dev->syncRoles([User::ROLE_PLATFORM_ADMIN]);
+
         // 動作確認用のサンプル加盟会社＋会社管理者（本番投入時は削除可）
         if (app()->environment('local')) {
             $company = Company::updateOrCreate(

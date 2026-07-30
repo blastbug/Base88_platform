@@ -54,6 +54,22 @@ class AuthController extends Controller
             return $company;
         });
 
+        // アクセス・活動ログに会社登録申請を記録（開発者専用ログ画面で参照）
+        try {
+            activity('access')
+                ->withProperties([
+                    'type' => 'register',
+                    'email' => $data['email'],
+                    'company' => $data['company_name'],
+                    'ip' => $request->ip(),
+                    'ua' => substr((string) $request->userAgent(), 0, 255),
+                ])
+                ->event('register')
+                ->log('会社登録申請: ' . $data['company_name']);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         // 運営（BASE88管理者）へ申請通知（メール失敗は申請処理を止めない）
         try {
             $admins = User::where('role', User::ROLE_PLATFORM_ADMIN)->where('is_active', true)->get();
@@ -101,6 +117,8 @@ class AuthController extends Controller
 
         $token = $user->createToken('web')->plainTextToken;
 
+        $this->logAccess($request, $user, 'login', '加盟会社アプリにログイン');
+
         return response()->json([
             'token' => $token,
             'user' => $this->userPayload($user),
@@ -110,9 +128,32 @@ class AuthController extends Controller
     /** ログアウト：現在のトークンを失効 */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+        $this->logAccess($request, $user, 'logout', '加盟会社アプリからログアウト');
+        $user->currentAccessToken()->delete();
 
         return response()->json(['message' => 'ログアウトしました。']);
+    }
+
+    /** アクセス・活動ログ（開発者専用ログ画面で参照）に記録する */
+    private function logAccess(Request $request, User $user, string $event, string $description): void
+    {
+        try {
+            activity('access')
+                ->causedBy($user)
+                ->withProperties([
+                    'type' => $event,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'company' => $user->company?->name,
+                    'ip' => $request->ip(),
+                    'ua' => substr((string) $request->userAgent(), 0, 255),
+                ])
+                ->event($event)
+                ->log($description);
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     /** 認証中ユーザー情報 */

@@ -42,7 +42,14 @@ class User extends Authenticatable implements FilamentUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'is_developer' => 'boolean',
         ];
+    }
+
+    /** 開発者（案件受託者）専用アカウントか。開発者専用ログ画面の閲覧判定に使用。 */
+    public function isDeveloper(): bool
+    {
+        return (bool) $this->is_developer;
     }
 
     /** 所属加盟会社（BASE88管理者は null） */
