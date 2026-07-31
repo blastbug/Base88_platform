@@ -22,6 +22,7 @@ class MovingJobForm
                 Section::make('掲載会社・日程')
                     ->icon('heroicon-o-calendar-days')
                     ->columns(2)
+                    ->columnSpanFull()
                     ->schema([
                         TextInput::make('job_code')->label('案件ID')
                             ->placeholder('空欄の場合は自動発行（例: T-2026-0815-001）')
@@ -42,6 +43,7 @@ class MovingJobForm
                 Section::make('引越場所')
                     ->icon('heroicon-o-map-pin')
                     ->columns(2)
+                    ->columnSpanFull()
                     ->schema([
                         TextInput::make('from_prefecture')->label('出発地（都道府県）')->required(),
                         TextInput::make('from_city')->label('出発地（市区町村）'),
@@ -52,6 +54,7 @@ class MovingJobForm
                 Section::make('荷物・作業条件')
                     ->icon('heroicon-o-cube')
                     ->columns(3)
+                    ->columnSpanFull()
                     ->schema([
                         TextInput::make('building_type')->label('建物種別')->required(),
                         TextInput::make('layout')->label('間取り'),
@@ -65,6 +68,7 @@ class MovingJobForm
                 Section::make('金額・募集状況')
                     ->icon('heroicon-o-banknotes')
                     ->columns(2)
+                    ->columnSpanFull()
                     ->schema([
                         TextInput::make('desired_price')->label('希望金額')->numeric()->prefix('¥'),
                         Select::make('status')->label('募集状況')
