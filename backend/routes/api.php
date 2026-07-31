@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AnnouncementController;
 use App\Http\Controllers\Api\ApplicationController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\CompanyProfileController;
 use App\Http\Controllers\Api\JobController;
 use App\Http\Controllers\Api\MeController;
 use App\Http\Controllers\Api\SalesController;
@@ -47,6 +48,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me/company', [MeController::class, 'company']);
     Route::put('/me/company', [MeController::class, 'updateCompany']);
     Route::post('/me/company/resubmit', [MeController::class, 'resubmit']);
+    // 加盟店による登録情報（10セクション）の自己入力・申請
+    Route::get('/me/company/profile', [CompanyProfileController::class, 'show']);
+    Route::put('/me/company/profile', [CompanyProfileController::class, 'update']);
+    Route::post('/me/company/documents', [CompanyProfileController::class, 'uploadDocument']);
+    Route::delete('/me/company/documents/{document}', [CompanyProfileController::class, 'deleteDocument']);
+    Route::post('/me/company/submit', [CompanyProfileController::class, 'submit']);
     // 売上・精算・請求書（加盟店側）
     Route::get('/me/sales', [SalesController::class, 'index']);
     Route::put('/me/finances/{finance}', [SalesController::class, 'updateFinance']);

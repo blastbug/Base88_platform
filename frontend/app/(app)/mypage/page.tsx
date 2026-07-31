@@ -154,12 +154,16 @@ export default function MyPage() {
                         </div>
                       )}
 
-                      {isCompanyAdmin && company.review_status === "revision" && (
-                        <div className="flex items-center gap-3">
-                          <Button size="sm" onClick={handleResubmit} disabled={resubmitting}>
-                            {resubmitting ? "送信中…" : "修正内容を再申請する"}
-                          </Button>
-                          <span className="text-xs text-ink-500">登録情報の修正後、こちらから再申請してください。</span>
+                      {isCompanyAdmin && (
+                        <div className="flex flex-wrap items-center gap-3">
+                          <Link href="/company" className="inline-flex items-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">
+                            登録情報を入力・編集する
+                          </Link>
+                          {company.review_status === "revision" && (
+                            <Button size="sm" variant="secondary" onClick={handleResubmit} disabled={resubmitting}>
+                              {resubmitting ? "送信中…" : "修正せず再申請する"}
+                            </Button>
+                          )}
                         </div>
                       )}
                     </div>

@@ -52,6 +52,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "アカウント",
     items: [
+      { href: "/company", label: "登録情報", match: (p) => p.startsWith("/company"), icon: ic("M3 21h18M4 21V7l8-4 8 4v14M9 9h1m4 0h1M9 13h1m4 0h1M9 17h1m4 0h1") },
       { href: "/mypage", label: "マイページ", match: (p) => p.startsWith("/mypage"), icon: ic("M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c0-3.3 3.6-6 8-6s8 2.7 8 6") },
     ],
   },
