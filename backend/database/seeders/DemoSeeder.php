@@ -31,11 +31,56 @@ class DemoSeeder extends Seeder
             $company = Company::updateOrCreate(
                 ['name' => $c['name']],
                 [
+                    'name_kana' => $c['name'],
+                    'postal_code' => '100-000' . ($i + 1),
                     'address' => $c['pref'] . '中央区1-2-3',
                     'phone' => $c['phone'],
+                    'company_email' => 'info@demo' . ($i + 1) . '.example.jp',
+                    'established_ym' => (2005 + $i) . '-04',
+                    'website' => 'https://demo' . ($i + 1) . '.example.jp',
+                    'service_areas' => $c['pref'] . '全域・近隣県',
+                    'business_hours' => '8:00〜19:00',
+                    'holidays' => '年中無休',
+                    'rep_name' => $c['name'] . ' 代表',
+                    'contact_name' => $c['name'] . ' 担当',
+                    'contact_phone' => $c['phone'],
+                    'contact_email' => 'demo' . ($i + 1) . '@base88.local',
+                    'employee_count' => 20 + $i * 10,
+                    'worker_count' => 12 + $i * 6,
+                    'sales_staff_count' => 3 + $i,
+                    'vehicle_count' => 5 + $i * 2,
+                    'has_antique_license' => $i % 2 === 0,
+                    'has_light_cargo_license' => true,
+                    'experience_years' => 8 + $i * 3,
+                    'annual_jobs' => 1200 + $i * 300,
+                    'monthly_capacity' => 100 + $i * 20,
+                    'corporate_experience' => true,
+                    'individual_experience' => true,
+                    'long_distance_support' => $i % 2 === 0,
+                    'has_transport_insurance' => true,
+                    'has_auto_insurance' => true,
+                    'insurer_name' => '損保ジャパン',
+                    'coverage_amount' => 10000000,
+                    'material_hanger_box' => 20 + $i * 5,
+                    'material_futon_bag' => 30 + $i * 5,
+                    'svc_disposal_pickup' => $i % 2 === 0,
+                    'svc_ac_install' => true,
+                    'svc_packing' => true,
+                    'svc_protection' => true,
+                    'svc_long_distance' => $i % 2 === 0,
+                    'review_status' => Company::REVIEW_APPROVED,
                     'status' => Company::STATUS_APPROVED,
                     'approved_at' => now(),
                 ]
+            );
+            // 保有車両・書類の見本（冪等）
+            $company->vehicles()->firstOrCreate(
+                ['truck_size' => '2トンショート'],
+                ['vehicle_type' => '平ボディ', 'count' => 2 + $i, 'max_load' => '2000kg', 'ownership' => '自社所有', 'availability' => '稼働可']
+            );
+            $company->documents()->firstOrCreate(
+                ['doc_type' => 'drivers_license'],
+                ['doc_name' => '代表者運転免許証', 'review_status' => 'confirmed']
             );
             $user = User::updateOrCreate(
                 ['email' => 'demo' . ($i + 1) . '@base88.local'],
@@ -51,6 +96,8 @@ class DemoSeeder extends Seeder
             $user->syncRoles([User::ROLE_COMPANY_ADMIN]);
             $created[] = $company;
         }
+
+        $this->seedReviewSamples();
 
         $samples = [
             ['from' => ['東京都', '世田谷区'], 'to' => ['神奈川県', '横浜市'], 'building' => 'マンション', 'layout' => '2LDK', 'vol' => '2tトラック1台程度', 'truck' => '2トンショート', 'workers' => 2, 'price' => 45000, 'slot' => '午前指定'],
@@ -109,6 +156,71 @@ class DemoSeeder extends Seeder
         }
 
         $this->seedShowcaseContract($created);
+    }
+
+    /** 審査ワークフローの見本。ログイン不可の申請中／審査中／修正依頼の会社を作成。 */
+    private function seedReviewSamples(): void
+    {
+        $samples = [
+            [
+                'name' => 'みらい引越サービス', 'review' => Company::REVIEW_SUBMITTED,
+                'note' => null, 'antique' => true,
+                'doc' => ['type' => 'antique_license', 'name' => '古物商許可証', 'status' => 'pending', 'reason' => null],
+            ],
+            [
+                'name' => 'そら運送', 'review' => Company::REVIEW_UNDER_REVIEW,
+                'note' => null, 'antique' => false,
+                'doc' => ['type' => 'light_cargo', 'name' => '軽貨物運送事業 届出書', 'status' => 'pending', 'reason' => null],
+            ],
+            [
+                'name' => 'あおぞら引越センター', 'review' => Company::REVIEW_REVISION,
+                'note' => "保険証券の有効期限が確認できません。最新の保険証券（PDF）をアップロードしてください。\nまた、代表者情報の生年月日が未入力です。",
+                'antique' => false,
+                'doc' => ['type' => 'insurance_policy', 'name' => '貨物保険証券', 'status' => 'rejected', 'reason' => '有効期限が読み取れません。再提出してください。'],
+            ],
+        ];
+
+        foreach ($samples as $i => $s) {
+            $company = Company::updateOrCreate(
+                ['name' => $s['name']],
+                [
+                    'name_kana' => $s['name'],
+                    'postal_code' => '540-000' . ($i + 1),
+                    'address' => '大阪府大阪市中央区本町' . ($i + 1) . '-2-3',
+                    'phone' => '06-1000-200' . ($i + 1),
+                    'company_email' => 'info@' . ['mirai', 'sora', 'aozora'][$i] . '.example.jp',
+                    'established_ym' => (2018 + $i) . '-0' . ($i + 3),
+                    'service_areas' => '関西全域',
+                    'business_hours' => '9:00〜18:00',
+                    'rep_name' => $s['name'] . ' 代表',
+                    'contact_name' => $s['name'] . ' 担当',
+                    'contact_phone' => '06-1000-200' . ($i + 1),
+                    'employee_count' => 8 + $i * 4,
+                    'worker_count' => 5 + $i * 2,
+                    'vehicle_count' => 3 + $i,
+                    'has_antique_license' => $s['antique'],
+                    'has_light_cargo_license' => true,
+                    'experience_years' => 3 + $i,
+                    'annual_jobs' => 300 + $i * 150,
+                    'monthly_capacity' => 30 + $i * 10,
+                    'individual_experience' => true,
+                    'svc_ac_install' => true,
+                    'svc_packing' => true,
+                    'review_status' => $s['review'],
+                    'review_note' => $s['note'],
+                    'submitted_at' => now()->subDays(3 - $i),
+                    'reviewed_at' => $s['review'] === Company::REVIEW_SUBMITTED ? null : now()->subDays(1),
+                ]
+            );
+            $company->vehicles()->firstOrCreate(
+                ['truck_size' => '軽トラック'],
+                ['vehicle_type' => '軽バン', 'count' => 2, 'ownership' => 'リース', 'availability' => '稼働可']
+            );
+            $company->documents()->firstOrCreate(
+                ['doc_type' => $s['doc']['type']],
+                ['doc_name' => $s['doc']['name'], 'review_status' => $s['doc']['status'], 'reject_reason' => $s['doc']['reason']]
+            );
+        }
     }
 
     /** 成約済みの見本案件（顧客情報つき）を1件作成。掲載会社＝1社目、成約会社＝2社目。 */
