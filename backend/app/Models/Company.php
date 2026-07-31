@@ -165,6 +165,18 @@ class Company extends Model
         return $this->hasMany(JobApplication::class);
     }
 
+    /** 精算・売上（成約案件ごと） */
+    public function finances(): HasMany
+    {
+        return $this->hasMany(JobFinance::class);
+    }
+
+    /** 月次請求書 */
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(CompanyInvoice::class);
+    }
+
     public function isApproved(): bool
     {
         return $this->status === self::STATUS_APPROVED;

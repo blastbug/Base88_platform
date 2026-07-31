@@ -3,8 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\Company;
+use App\Models\CompanyInvoice;
 use App\Models\JobApplication;
 use App\Models\JobContract;
+use App\Models\JobFinance;
 use App\Models\MovingJob;
 use App\Models\MovingJobCustomerDetail;
 use App\Models\User;
@@ -287,7 +289,7 @@ class DemoSeeder extends Seeder
             ]
         );
 
-        JobContract::updateOrCreate(
+        $contract = JobContract::updateOrCreate(
             ['moving_job_id' => $job->id],
             [
                 'job_application_id' => $app->id,
@@ -295,5 +297,117 @@ class DemoSeeder extends Seeder
                 'contracted_at' => now(),
             ]
         );
+
+        // 精算・売上（代行集金・追加料金の見本つき）
+        JobFinance::updateOrCreate(
+            ['job_contract_id' => $contract->id],
+            [
+                'company_id' => $winner->id,
+                'sale_amount' => 88000,
+                'collected_amount' => 88000,
+                'collection_fee_rate' => 10,
+                'collection_confirmed' => true,
+                'additional_amount' => 5000,
+                'additional_detail' => 'ピアノ運搬（1階分階段作業）',
+                'additional_reason' => '当日、エレベーターが点検中のため階段作業が発生。',
+                'additional_input_date' => now()->subDay(),
+                'additional_confirmed' => false,
+                'billing_amount' => 93000,
+                'payment_amount' => 83700,
+                'deposit_status' => JobFinance::DEPOSIT_PAID,
+                'payment_status' => JobFinance::PAY_UNPAID,
+                'settled_month' => now()->copy()->startOfMonth(),
+            ]
+        );
+
+        $this->seedMonthlyFinancesAndInvoices($winner, $companies[2]);
+    }
+
+    /**
+     * 月別売上・請求書の見本。受注会社 $winner に対し、直近3か月分の成約（精算）と
+     * 月次請求書を作成する。掲載会社は $owner（別会社）。
+     */
+    private function seedMonthlyFinancesAndInvoices(Company $winner, Company $owner): void
+    {
+        $rows = [
+            ['month' => 0, 'sale' => 120000, 'collected' => 120000, 'add' => 0,    'deposit' => 'paid',    'pay' => 'unpaid'],
+            ['month' => 1, 'sale' => 96000,  'collected' => 96000,  'add' => 8000, 'deposit' => 'paid',    'pay' => 'paid'],
+            ['month' => 2, 'sale' => 150000, 'collected' => 0,      'add' => 0,    'deposit' => 'unpaid',  'pay' => 'unpaid'],
+        ];
+
+        foreach ($rows as $i => $r) {
+            $month = now()->copy()->subMonthsNoOverflow($r['month'])->startOfMonth();
+            $job = MovingJob::updateOrCreate(
+                [
+                    'company_id' => $owner->id,
+                    'from_prefecture' => '大阪府',
+                    'to_prefecture' => '京都府',
+                    'moving_date' => $month->copy()->addDays(12),
+                ],
+                [
+                    'time_slot' => '午前指定',
+                    'from_city' => '大阪市',
+                    'to_city' => '京都市',
+                    'building_type' => 'マンション',
+                    'layout' => '2LDK',
+                    'luggage_volume' => '3tトラック1台',
+                    'truck_size' => '3トン',
+                    'worker_count' => 3,
+                    'desired_price' => $r['sale'],
+                    'application_deadline' => $month->copy()->addDays(8)->setTime(18, 0),
+                    'status' => MovingJob::STATUS_COMPLETED,
+                ]
+            );
+            $app = JobApplication::updateOrCreate(
+                ['moving_job_id' => $job->id, 'company_id' => $winner->id],
+                [
+                    'applied_by' => $winner->users()->first()->id,
+                    'message' => '対応可能です。',
+                    'status' => JobApplication::STATUS_ACCEPTED,
+                ]
+            );
+            $contract = JobContract::updateOrCreate(
+                ['moving_job_id' => $job->id],
+                ['job_application_id' => $app->id, 'winning_company_id' => $winner->id, 'contracted_at' => $month->copy()->addDays(13)]
+            );
+            $fee = (int) floor($r['collected'] * 0.10);
+            JobFinance::updateOrCreate(
+                ['job_contract_id' => $contract->id],
+                [
+                    'company_id' => $winner->id,
+                    'sale_amount' => $r['sale'],
+                    'collected_amount' => $r['collected'] ?: null,
+                    'collection_fee_rate' => 10,
+                    'collection_confirmed' => $r['collected'] > 0,
+                    'additional_amount' => $r['add'] ?: null,
+                    'additional_detail' => $r['add'] ? '待機料' : null,
+                    'billing_amount' => $r['sale'] + $r['add'],
+                    'payment_amount' => $r['collected'] > 0 ? $r['collected'] - $fee : $r['sale'],
+                    'deposit_status' => $r['deposit'],
+                    'payment_status' => $r['pay'],
+                    'settled_month' => $month,
+                ]
+            );
+        }
+
+        // 月次請求書（対象月・確認状況・支払状況の見本）
+        $invoices = [
+            ['month' => 1, 'amount' => 104000, 'review' => 'confirmed', 'reject' => null, 'pay' => 'paid'],
+            ['month' => 0, 'amount' => 120000, 'review' => 'pending',   'reject' => null, 'pay' => 'unpaid'],
+            ['month' => 0, 'amount' => 45000,  'review' => 'rejected',  'reject' => '対象月と金額が請求内訳と一致しません。ご確認ください。', 'pay' => 'unpaid'],
+        ];
+        foreach ($invoices as $i => $inv) {
+            $ym = now()->copy()->subMonthsNoOverflow($inv['month'])->format('Y-m');
+            CompanyInvoice::updateOrCreate(
+                ['company_id' => $winner->id, 'target_month' => $ym, 'amount' => $inv['amount']],
+                [
+                    'uploaded_at' => now()->subDays($i + 1),
+                    'review_status' => $inv['review'],
+                    'reject_reason' => $inv['reject'],
+                    'payment_status' => $inv['pay'],
+                    'paid_at' => $inv['pay'] === 'paid' ? now()->subDays($i) : null,
+                ]
+            );
+        }
     }
 }
