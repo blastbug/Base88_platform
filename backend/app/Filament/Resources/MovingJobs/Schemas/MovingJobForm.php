@@ -6,16 +6,20 @@ use App\Models\MovingJob;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Fieldset;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Support\HtmlString;
 
 class MovingJobForm
 {
@@ -37,33 +41,70 @@ class MovingJobForm
                             ->relationship('company', 'name')->searchable()->preload()->required(),
                         DatePicker::make('moving_date')->label('引越予定日')->native(false)->required(),
                         DateTimePicker::make('application_deadline')->label('応募締切')->native(false)->required(),
+                    ]),
 
-                        Fieldset::make('引越予定時間')
-                            ->columns(2)
-                            ->columnSpanFull()
-                            ->schema([
+                Section::make('引越予定時間')
+                    ->icon('heroicon-o-clock')
+                    ->columnSpanFull()
+                    ->columns(['default' => 1, 'md' => 2])
+                    ->schema([
+                                // 左：時間区分（単一選択）
                                 Radio::make('t_period')->label('時間区分')
                                     ->options([
                                         '' => '指定なし',
                                         '午前' => '午前',
                                         '午後' => '午後',
+                                        'range' => '時間帯を指定する',
                                         'フリー便' => 'フリー便',
                                     ])
-                                    ->default('')->inline()->inlineLabel(false)->columnSpanFull(),
-                                Checkbox::make('t_range')->label('時間帯を指定する')
-                                    ->helperText('チェックすると開始・終了時刻を入力できます。')
-                                    ->live()->columnSpanFull(),
-                                TimePicker::make('t_from')->label('開始時刻')
-                                    ->seconds(false)->native(false)->format('H:i')->displayFormat('H:i')
-                                    ->disabled(fn (Get $get): bool => ! $get('t_range'))
-                                    ->required(fn (Get $get): bool => (bool) $get('t_range'))
-                                    ->dehydrated(),
-                                TimePicker::make('t_to')->label('終了時刻')
-                                    ->seconds(false)->native(false)->format('H:i')->displayFormat('H:i')
-                                    ->disabled(fn (Get $get): bool => ! $get('t_range'))
-                                    ->required(fn (Get $get): bool => (bool) $get('t_range'))
-                                    ->dehydrated(),
-                            ]),
+                                    ->descriptions([
+                                        '午前' => '8:00〜12:00頃',
+                                        '午後' => '12:00〜18:00頃',
+                                        'range' => '開始・終了時刻を入力',
+                                        'フリー便' => '時間指定なし',
+                                    ])
+                                    ->default('')
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Set $set): void {
+                                        // 区分に応じて時間帯の目安を補完する
+                                        match ($state) {
+                                            '午前' => [$set('t_range', true), $set('t_from', '8:00'), $set('t_to', '12:00')],
+                                            '午後' => [$set('t_range', true), $set('t_from', '12:00'), $set('t_to', '18:00')],
+                                            'range' => [$set('t_range', true), $set('t_from', null), $set('t_to', null)],
+                                            default => [$set('t_range', false), $set('t_from', null), $set('t_to', null)],
+                                        };
+                                    }),
+
+                                // 右：時間帯の詳細
+                                Group::make()
+                                    ->schema([
+                                        Checkbox::make('t_range')->label('時間帯を指定する')
+                                            ->helperText('開始・終了時刻を入力してください。')
+                                            ->live()
+                                            ->disabled(fn (Get $get): bool => $get('t_period') === '' || $get('t_period') === null),
+                                        Grid::make(2)->schema([
+                                            TimePicker::make('t_from')->label('開始時刻')
+                                                ->seconds(false)->native(false)->format('H:i')->displayFormat('H:i')
+                                                ->prefixIcon('heroicon-m-clock')
+                                                ->disabled(fn (Get $get): bool => blank($get('t_period')) || ! $get('t_range'))
+                                                ->required(fn (Get $get): bool => filled($get('t_period')) && (bool) $get('t_range'))
+                                                ->dehydrated(),
+                                            TimePicker::make('t_to')->label('終了時刻')
+                                                ->seconds(false)->native(false)->format('H:i')->displayFormat('H:i')
+                                                ->prefixIcon('heroicon-m-clock')
+                                                ->disabled(fn (Get $get): bool => blank($get('t_period')) || ! $get('t_range'))
+                                                ->required(fn (Get $get): bool => filled($get('t_period')) && (bool) $get('t_range'))
+                                                ->dehydrated(),
+                                        ]),
+                                        Placeholder::make('t_note')->hiddenLabel()
+                                            ->content(new HtmlString(
+                                                '<div style="display:flex;gap:.45rem;align-items:flex-start;padding:.55rem .7rem;border-radius:.5rem;'
+                                                . 'background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);color:#1d4ed8;font-size:.75rem;line-height:1.5;">'
+                                                . '<span style="flex:none;font-weight:700;">ⓘ</span>'
+                                                . '<span>目安の時間帯です。詳細な時間指定は、加盟会社への案件開示後に個別でご案内ください。</span></div>'
+                                            ))
+                                            ->visible(fn (Get $get): bool => filled($get('t_period'))),
+                                    ]),
                     ]),
 
                 Section::make('引越場所')
