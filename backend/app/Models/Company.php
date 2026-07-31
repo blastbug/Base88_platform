@@ -177,6 +177,12 @@ class Company extends Model
         return $this->hasMany(CompanyInvoice::class);
     }
 
+    /** 事故・クレーム履歴 */
+    public function incidents(): HasMany
+    {
+        return $this->hasMany(CompanyIncident::class);
+    }
+
     public function isApproved(): bool
     {
         return $this->status === self::STATUS_APPROVED;

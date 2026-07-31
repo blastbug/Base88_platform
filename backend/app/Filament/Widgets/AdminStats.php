@@ -3,12 +3,15 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Company;
+use App\Models\CompanyIncident;
 use App\Models\JobApplication;
 use App\Models\JobContract;
+use App\Models\JobFinance;
 use App\Models\MovingJob;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class AdminStats extends StatsOverviewWidget
 {
@@ -69,6 +72,15 @@ class AdminStats extends StatsOverviewWidget
         [$appDesc, $appIcon] = $delta($appThis, $appLast);
         [$conDesc, $conIcon] = $delta($conThis, $conLast);
 
+        // 未収金（入金未完了の請求予定額の合計）
+        $receivable = (int) JobFinance::where('deposit_status', '!=', JobFinance::DEPOSIT_PAID)
+            ->sum(DB::raw('COALESCE(billing_amount, sale_amount, 0)'));
+        $receivableCount = JobFinance::where('deposit_status', '!=', JobFinance::DEPOSIT_PAID)->count();
+
+        // 事故・クレーム（対応中）
+        $openIncidents = CompanyIncident::where('status', CompanyIncident::STATUS_OPEN)->count();
+        $incidentTotal = CompanyIncident::count();
+
         return [
             Stat::make('加盟会社数', number_format($companyTotal) . ' 社')
                 ->description('承認済み ' . number_format($companyApproved) . ' 社')
@@ -93,6 +105,16 @@ class AdminStats extends StatsOverviewWidget
                 ->descriptionIcon($conIcon)
                 ->chart($conSeries)
                 ->color('success'),
+
+            Stat::make('未収金', '¥' . number_format($receivable))
+                ->description('入金未完了 ' . number_format($receivableCount) . ' 件')
+                ->descriptionIcon('heroicon-m-banknotes')
+                ->color($receivable > 0 ? 'danger' : 'gray'),
+
+            Stat::make('事故・クレーム（対応中）', number_format($openIncidents) . ' 件')
+                ->description('累計 ' . number_format($incidentTotal) . ' 件')
+                ->descriptionIcon('heroicon-m-exclamation-triangle')
+                ->color($openIncidents > 0 ? 'warning' : 'gray'),
         ];
     }
 }

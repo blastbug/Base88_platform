@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Company;
+use App\Models\CompanyIncident;
 use App\Models\CompanyInvoice;
 use App\Models\JobApplication;
 use App\Models\JobContract;
@@ -158,6 +159,32 @@ class DemoSeeder extends Seeder
         }
 
         $this->seedShowcaseContract($created);
+        $this->seedIncidents($created);
+    }
+
+    /** 事故・クレームの見本（⑫）。 */
+    private function seedIncidents(array $companies): void
+    {
+        $samples = [
+            ['company' => 0, 'type' => CompanyIncident::TYPE_ACCIDENT, 'days' => 20, 'title' => '搬入時に壁面を軽微に損傷', 'desc' => '冷蔵庫搬入時、玄関の壁紙に擦り傷が発生。', 'status' => CompanyIncident::STATUS_RESOLVED, 'resolution' => '当日中にお詫びし、補修費用を負担して解決。', 'amount' => 15000],
+            ['company' => 1, 'type' => CompanyIncident::TYPE_COMPLAINT, 'days' => 8, 'title' => '到着時間が予定より遅延', 'desc' => '前案件の長引きにより、到着が約1時間遅延。お客様よりご指摘。', 'status' => CompanyIncident::STATUS_RESOLVED, 'resolution' => '謝罪のうえ、次回利用時の割引を案内。', 'amount' => null],
+            ['company' => 2, 'type' => CompanyIncident::TYPE_COMPLAINT, 'days' => 3, 'title' => '作業員の対応に関するご指摘', 'desc' => '養生が不十分との申告あり。現在事実確認中。', 'status' => CompanyIncident::STATUS_OPEN, 'resolution' => null, 'amount' => null],
+        ];
+
+        foreach ($samples as $s) {
+            $company = $companies[$s['company']];
+            CompanyIncident::updateOrCreate(
+                ['company_id' => $company->id, 'title' => $s['title']],
+                [
+                    'type' => $s['type'],
+                    'occurred_on' => Carbon::today()->subDays($s['days']),
+                    'description' => $s['desc'],
+                    'status' => $s['status'],
+                    'resolution' => $s['resolution'],
+                    'damage_amount' => $s['amount'],
+                ]
+            );
+        }
     }
 
     /** 審査ワークフローの見本。ログイン不可の申請中／審査中／修正依頼の会社を作成。 */
