@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\JobController;
 use App\Http\Controllers\Api\MeController;
+use App\Http\Controllers\Api\SalesController;
 use Illuminate\Support\Facades\Route;
 
 // 認証不要
@@ -46,6 +47,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me/company', [MeController::class, 'company']);
     Route::put('/me/company', [MeController::class, 'updateCompany']);
     Route::post('/me/company/resubmit', [MeController::class, 'resubmit']);
+    // 売上・精算・請求書（加盟店側）
+    Route::get('/me/sales', [SalesController::class, 'index']);
+    Route::put('/me/finances/{finance}', [SalesController::class, 'updateFinance']);
+    Route::post('/me/invoices', [SalesController::class, 'uploadInvoice']);
     Route::get('/me/staff', [MeController::class, 'staff']);
     Route::post('/me/staff', [MeController::class, 'createStaff']);
     Route::patch('/me/staff/{user}/active', [MeController::class, 'toggleStaff']);

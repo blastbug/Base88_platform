@@ -46,6 +46,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/my/applications", label: "応募管理", match: (p) => p.startsWith("/my/applications"), icon: ic("M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z") },
       { href: "/my/contracts", label: "成約管理", match: (p) => p.startsWith("/my/contracts"), icon: ic("M9 12l2 2 4-4M7.5 4.2a2 2 0 0 1 1.8-1.1h5.4a2 2 0 0 1 1.8 1.1M4 7h16v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7z") },
+      { href: "/sales", label: "売上・精算", match: (p) => p.startsWith("/sales"), icon: ic("M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6") },
     ],
   },
   {
