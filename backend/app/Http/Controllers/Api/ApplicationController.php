@@ -19,6 +19,11 @@ class ApplicationController extends Controller
     {
         $user = $request->user();
 
+        // 承認済みの加盟店のみ応募可（審査中・修正依頼中は不可）
+        if (! $user->company || ! $user->company->isApproved()) {
+            throw ValidationException::withMessages(['job' => ['審査が完了し、承認された加盟店のみ応募いただけます。']]);
+        }
+
         // 自社案件への応募禁止
         if ($job->company_id === $user->company_id) {
             throw ValidationException::withMessages(['job' => ['自社が掲載した案件には応募できません。']]);

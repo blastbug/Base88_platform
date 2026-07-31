@@ -79,7 +79,7 @@ class AuthController extends Controller
         }
 
         return response()->json([
-            'message' => '登録申請を受け付けました。BASE88による承認後にログインいただけます。',
+            'message' => '登録を受け付けました。ログイン後、申請状況の確認や登録情報の入力を行えます。BASE88の審査・承認後にサービスをご利用いただけます。',
         ], 201);
     }
 
@@ -105,12 +105,20 @@ class AuthController extends Controller
             ]);
         }
 
-        // 加盟会社ユーザーは、所属会社が承認済みでなければログイン不可
+        // 加盟会社ユーザーのログイン制御。
+        // 申請中・審査中・修正依頼の会社もログイン可（申請状況の確認・修正のため）。
+        // 利用停止・契約終了のみログイン不可。
         if ($user->company_id) {
             $company = $user->company;
-            if (! $company || ! $company->isApproved()) {
+            if (! $company) {
                 throw ValidationException::withMessages([
-                    'email' => ['所属会社が承認待ち、または利用停止中です。'],
+                    'email' => ['所属会社が見つかりません。管理者にお問い合わせください。'],
+                ]);
+            }
+            if (in_array($company->review_status, [Company::REVIEW_SUSPENDED, Company::REVIEW_TERMINATED], true)
+                || $company->status === Company::STATUS_SUSPENDED) {
+                throw ValidationException::withMessages([
+                    'email' => ['所属会社が利用停止中、または契約終了となっています。管理者にお問い合わせください。'],
                 ]);
             }
         }

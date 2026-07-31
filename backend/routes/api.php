@@ -45,6 +45,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // マイページ（会社情報・担当者・パスワード）
     Route::get('/me/company', [MeController::class, 'company']);
     Route::put('/me/company', [MeController::class, 'updateCompany']);
+    Route::post('/me/company/resubmit', [MeController::class, 'resubmit']);
     Route::get('/me/staff', [MeController::class, 'staff']);
     Route::post('/me/staff', [MeController::class, 'createStaff']);
     Route::patch('/me/staff/{user}/active', [MeController::class, 'toggleStaff']);

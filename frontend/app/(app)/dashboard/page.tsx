@@ -45,13 +45,19 @@ function toArr(x: { data: Job[] } | Job[] | undefined): Job[] {
 }
 
 /* ---------- page ---------- */
+type ReviewInfo = { status: string; label: string; note: string | null; approved: boolean };
+
 export default function DashboardPage() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [review, setReview] = useState<ReviewInfo | null>(null);
 
   useEffect(() => {
     api<DashboardData>("/dashboard").then(setData).finally(() => setLoading(false));
+    api<{ data: { review_status: string; review_status_label: string; review_note: string | null; is_approved: boolean } | null }>("/me/company")
+      .then((r) => r.data && setReview({ status: r.data.review_status, label: r.data.review_status_label, note: r.data.review_note, approved: r.data.is_approved }))
+      .catch(() => {});
   }, []);
 
   if (loading || !data) {
@@ -63,6 +69,27 @@ export default function DashboardPage() {
 
   return (
     <div className="animate-fade-in space-y-6">
+      {/* 審査状況バナー（未承認のみ表示） */}
+      {review && !review.approved && (
+        <div className={`rounded-xl border px-5 py-4 ${review.status === "revision" ? "border-rose-200 bg-rose-50" : "border-amber-200 bg-amber-50"}`}>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className={`text-sm font-bold ${review.status === "revision" ? "text-rose-700" : "text-amber-700"}`}>
+                {review.status === "revision" ? "BASE88から修正のご依頼があります" : `現在のステータス：${review.label}`}
+              </p>
+              <p className="mt-0.5 text-sm text-ink-600">
+                {review.status === "revision"
+                  ? "登録情報の修正が必要です。マイページで修正依頼の内容をご確認ください。"
+                  : "審査が完了し承認されると、案件への応募などすべての機能をご利用いただけます。"}
+              </p>
+            </div>
+            <Link href="/mypage" className="shrink-0 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-brand-700 ring-1 ring-brand-600/20 hover:bg-brand-50">
+              マイページで確認
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* 概要 */}
       <section className="card p-5">
         <CardHead title="概要" href="/jobs" />

@@ -23,18 +23,65 @@ class MeController extends Controller
             return response()->json(['data' => null]);
         }
 
+        $company->loadMissing('documents');
+
+        // 差し戻し（要再提出）の書類
+        $rejectedDocs = $company->documents
+            ->where('review_status', \App\Models\CompanyDocument::REVIEW_REJECTED)
+            ->map(fn ($d) => [
+                'id' => $d->id,
+                'type' => $d->typeLabel(),
+                'name' => $d->doc_name,
+                'reason' => $d->reject_reason,
+            ])->values();
+
         return response()->json(['data' => [
             'id' => $company->id,
             'name' => $company->name,
+            'name_kana' => $company->name_kana,
             'address' => $company->address,
+            'postal_code' => $company->postal_code,
             'phone' => $company->phone,
+            'company_email' => $company->company_email,
+            'website' => $company->website,
             'corporate_number' => $company->corporate_number,
             'invoice_number' => $company->invoice_number,
             'status' => $company->status,
+            // 審査ワークフロー
+            'review_status' => $company->review_status,
+            'review_status_label' => $company->reviewStatusLabel(),
+            'review_note' => $company->review_note,
+            'is_approved' => $company->isApproved(),
+            'submitted_at' => optional($company->submitted_at)->toIso8601String(),
+            'reviewed_at' => optional($company->reviewed_at)->toIso8601String(),
+            'rejected_documents' => $rejectedDocs,
+            'documents_count' => $company->documents->count(),
             'member_code' => 'C-' . str_pad((string) $company->id, 7, '0', STR_PAD_LEFT),
             'registered_at' => optional($company->created_at)->toDateString(),
             'contact_email' => $request->user()->email,
         ]]);
+    }
+
+    /** 修正対応後の再申請（修正依頼→申請済みへ）。会社管理者のみ。 */
+    public function resubmit(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $company = $user->company;
+        abort_if(! $company, 404);
+        abort_unless($user->isCompanyAdmin(), 403, '再申請を行う権限がありません。');
+
+        if ($company->review_status !== \App\Models\Company::REVIEW_REVISION) {
+            return response()->json(['message' => '現在、再申請が必要な状態ではありません。'], 422);
+        }
+
+        $company->update([
+            'review_status' => \App\Models\Company::REVIEW_SUBMITTED,
+            'review_note' => null,
+            'submitted_at' => now(),
+        ]);
+        activity('operation')->causedBy($user)->performedOn($company)->event('resubmitted')->log('加盟店が修正内容を再申請');
+
+        return response()->json(['message' => '再申請を受け付けました。BASE88による審査をお待ちください。']);
     }
 
     /** 会社情報の更新（会社管理者のみ） */

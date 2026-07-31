@@ -163,17 +163,17 @@ class DemoSeeder extends Seeder
     {
         $samples = [
             [
-                'name' => 'みらい引越サービス', 'review' => Company::REVIEW_SUBMITTED,
+                'name' => 'みらい引越サービス', 'review' => Company::REVIEW_SUBMITTED, 'login' => 'mirai',
                 'note' => null, 'antique' => true,
                 'doc' => ['type' => 'antique_license', 'name' => '古物商許可証', 'status' => 'pending', 'reason' => null],
             ],
             [
-                'name' => 'そら運送', 'review' => Company::REVIEW_UNDER_REVIEW,
+                'name' => 'そら運送', 'review' => Company::REVIEW_UNDER_REVIEW, 'login' => 'sora',
                 'note' => null, 'antique' => false,
                 'doc' => ['type' => 'light_cargo', 'name' => '軽貨物運送事業 届出書', 'status' => 'pending', 'reason' => null],
             ],
             [
-                'name' => 'あおぞら引越センター', 'review' => Company::REVIEW_REVISION,
+                'name' => 'あおぞら引越センター', 'review' => Company::REVIEW_REVISION, 'login' => 'aozora',
                 'note' => "保険証券の有効期限が確認できません。最新の保険証券（PDF）をアップロードしてください。\nまた、代表者情報の生年月日が未入力です。",
                 'antique' => false,
                 'doc' => ['type' => 'insurance_policy', 'name' => '貨物保険証券', 'status' => 'rejected', 'reason' => '有効期限が読み取れません。再提出してください。'],
@@ -220,6 +220,20 @@ class DemoSeeder extends Seeder
                 ['doc_type' => $s['doc']['type']],
                 ['doc_name' => $s['doc']['name'], 'review_status' => $s['doc']['status'], 'reject_reason' => $s['doc']['reason']]
             );
+
+            // 申請状況・修正依頼を確認できるログインユーザー（審査中でもログイン可）
+            $u = User::updateOrCreate(
+                ['email' => $s['login'] . '@base88.local'],
+                [
+                    'company_id' => $company->id,
+                    'name' => $s['name'] . ' 担当',
+                    'password' => Hash::make('password'),
+                    'role' => User::ROLE_COMPANY_ADMIN,
+                    'is_active' => true,
+                    'email_verified_at' => now(),
+                ]
+            );
+            $u->syncRoles([User::ROLE_COMPANY_ADMIN]);
         }
     }
 

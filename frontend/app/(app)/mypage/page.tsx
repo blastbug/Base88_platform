@@ -8,12 +8,28 @@ import { useAuth } from "@/lib/auth";
 import { Badge, Button, Field, Input, SectionCard, Select, Spinner, Tabs } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 
+interface RejectedDoc { id: number; type: string; name: string | null; reason: string | null; }
 interface CompanyDetail {
-  id: number; name: string; address: string | null; phone: string | null;
+  id: number; name: string; name_kana: string | null; address: string | null; postal_code: string | null;
+  phone: string | null; company_email: string | null; website: string | null;
   corporate_number: string | null; invoice_number: string | null; status: string;
+  review_status: string; review_status_label: string; review_note: string | null; is_approved: boolean;
+  submitted_at: string | null; reviewed_at: string | null;
+  rejected_documents: RejectedDoc[]; documents_count: number;
   member_code: string; registered_at: string | null; contact_email: string;
 }
 interface Staff { id: number; name: string; email: string; role: string; is_active: boolean; }
+
+/** 審査ステータスの表示色 */
+const REVIEW_TONE: Record<string, string> = {
+  draft: "bg-ink-100 text-ink-600 ring-ink-500/20",
+  submitted: "bg-brand-50 text-brand-700 ring-brand-600/20",
+  under_review: "bg-amber-50 text-amber-700 ring-amber-600/20",
+  revision: "bg-rose-50 text-rose-700 ring-rose-600/20",
+  approved: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  suspended: "bg-rose-50 text-rose-700 ring-rose-600/20",
+  terminated: "bg-ink-100 text-ink-600 ring-ink-500/20",
+};
 
 const ROLE_LABEL: Record<string, string> = { platform_admin: "BASE88管理者", company_admin: "会社管理者", staff: "一般担当者" };
 const TABS = [
@@ -55,6 +71,21 @@ export default function MyPage() {
     router.replace("/login");
   }
 
+  const [resubmitting, setResubmitting] = useState(false);
+  async function handleResubmit() {
+    setResubmitting(true);
+    setStaffMsg(null);
+    try {
+      const res = await api<{ message: string }>("/me/company/resubmit", { method: "POST" });
+      await loadCompany();
+      alert(res.message);
+    } catch (e) {
+      alert(e instanceof ApiError ? e.message : "再申請に失敗しました。");
+    } finally {
+      setResubmitting(false);
+    }
+  }
+
   async function loadCompany() {
     try {
       const [c, s] = await Promise.all([
@@ -86,6 +117,55 @@ export default function MyPage() {
             <>
               {tab === "company" && (
                 <div className="space-y-6">
+                {/* 審査状況 */}
+                {company && (
+                  <div className={`rounded-xl border ${company.review_status === "revision" ? "border-rose-200 bg-rose-50/50" : "border-ink-200"}`}>
+                    <div className="flex items-center justify-between border-b border-ink-100 px-5 py-3">
+                      <h3 className="text-sm font-bold text-ink-800">審査状況</h3>
+                      <Badge tone={REVIEW_TONE[company.review_status] ?? REVIEW_TONE.draft}>{company.review_status_label}</Badge>
+                    </div>
+                    <div className="space-y-4 px-5 py-4">
+                      {company.is_approved ? (
+                        <p className="text-sm text-ink-600">審査が完了しています。すべてのサービスをご利用いただけます。</p>
+                      ) : company.review_status === "revision" ? (
+                        <p className="text-sm font-medium text-rose-700">BASE88から修正の依頼があります。内容をご確認のうえ、登録情報を修正して再申請してください。</p>
+                      ) : (
+                        <p className="text-sm text-ink-600">現在、BASE88にて審査中です。承認後にすべてのサービスをご利用いただけます。</p>
+                      )}
+
+                      {company.review_note && (
+                        <div className="rounded-lg border border-rose-200 bg-white px-4 py-3">
+                          <p className="mb-1 text-xs font-semibold text-rose-700">管理者からの修正依頼コメント</p>
+                          <p className="whitespace-pre-wrap text-sm text-ink-700">{company.review_note}</p>
+                        </div>
+                      )}
+
+                      {company.rejected_documents.length > 0 && (
+                        <div className="rounded-lg border border-rose-200 bg-white px-4 py-3">
+                          <p className="mb-2 text-xs font-semibold text-rose-700">差し戻し（要再提出）の書類</p>
+                          <ul className="space-y-2">
+                            {company.rejected_documents.map((d) => (
+                              <li key={d.id} className="text-sm text-ink-700">
+                                <span className="font-medium">{d.type}{d.name ? `（${d.name}）` : ""}</span>
+                                {d.reason && <span className="block text-xs text-rose-600">理由：{d.reason}</span>}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {isCompanyAdmin && company.review_status === "revision" && (
+                        <div className="flex items-center gap-3">
+                          <Button size="sm" onClick={handleResubmit} disabled={resubmitting}>
+                            {resubmitting ? "送信中…" : "修正内容を再申請する"}
+                          </Button>
+                          <span className="text-xs text-ink-500">登録情報の修正後、こちらから再申請してください。</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
                   <div className="rounded-xl border border-ink-200">
                     <div className="flex items-center justify-between border-b border-ink-100 px-5 py-3">
@@ -104,7 +184,7 @@ export default function MyPage() {
                     <dl className="divide-y divide-ink-100 px-5">
                       <KV label="会員ID" value={company?.member_code} />
                       <KV label="登録日" value={company?.registered_at ? formatDate(company.registered_at) : "—"} />
-                      <KV label="会員ステータス" value={<Badge tone="bg-emerald-50 text-emerald-700 ring-emerald-600/20">正常</Badge>} />
+                      <KV label="会員ステータス" value={company ? <Badge tone={REVIEW_TONE[company.review_status] ?? REVIEW_TONE.draft}>{company.review_status_label}</Badge> : "—"} />
                     </dl>
                   </div>
                 </div>
