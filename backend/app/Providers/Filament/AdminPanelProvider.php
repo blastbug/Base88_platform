@@ -127,6 +127,24 @@ class AdminPanelProvider extends PanelProvider
                       /* ===== ダークモード ===== */
                       .dark .fi-main-ctn { background-color: #020617; }
                       .dark .fi-wi-stats-overview-stat { border-color: #1e293b; }
+
+                      /* ===== 案件フォーム：左右カラムの下端を揃える =====
+                         クラス b88-job* は案件フォーム専用のため他画面に影響しない。
+                         グリッド列は既にストレッチするので、その中身を列高いっぱいに伸ばす。 */
+                      @media (min-width: 1024px) {
+                        /* 左：掲載会社・日程 */
+                        .fi-grid-col:has(> .fi-sc-component > .b88-jobcol-left) > .fi-sc-component { height: 100%; }
+                        .b88-jobcol-left { height: 100%; }
+                        .b88-jobcol-left > .fi-section { height: 100%; }
+                        /* 右：引越場所＋荷物（Group）。Group と最後の荷物セクションを伸ばす */
+                        .fi-grid-col:has(> .fi-sc-component > .b88-jobcol-right) > .fi-sc-component { height: 100%; }
+                        .b88-jobcol-right { height: 100%; display: flex; flex-direction: column; }
+                        .b88-jobcol-right > .fi-sc { flex: 1 1 auto; display: flex; flex-direction: column; }
+                        .b88-jobcol-right > .fi-sc > .fi-grid-col:last-child { display: flex; }
+                        .b88-jobcol-right > .fi-sc > .fi-grid-col:last-child > .fi-sc-component { flex: 1 1 auto; display: flex; }
+                        .b88-jobsec-grow { flex: 1 1 auto; }
+                        .b88-jobsec-grow > .fi-section { height: 100%; }
+                      }
                     </style>
                     HTML)
             )

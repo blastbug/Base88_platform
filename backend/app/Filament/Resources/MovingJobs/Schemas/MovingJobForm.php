@@ -8,7 +8,6 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
@@ -50,6 +49,7 @@ class MovingJobForm
                     ->icon('heroicon-o-calendar-days')
                     ->columns(2)
                     ->columnSpan(1)
+                    ->extraAttributes(['class' => 'b88-jobcol b88-jobcol-left'])
                     ->schema([
                         TextInput::make('job_code')->label('案件ID（管理者任意）')
                             ->placeholder('例: T-2026-0815-001')
@@ -87,6 +87,7 @@ class MovingJobForm
                     Section::make('荷物・作業条件')
                         ->icon('heroicon-o-cube')
                         ->columns(3)
+                        ->extraAttributes(['class' => 'b88-jobsec-grow'])
                         ->schema([
                             Select::make('building_type')->label('建物種別')
                                 ->options(self::opts(self::BUILDING_TYPES))->native(false)->required(),
@@ -97,12 +98,11 @@ class MovingJobForm
                                 ->options(self::opts(self::TRUCK_SIZES))->native(false),
                             TextInput::make('worker_count')->label('必要人数')->numeric()->suffix('名'),
                             TextInput::make('floors')->label('階数')->placeholder('例: 2階'),
-                            Toggle::make('has_elevator')->label('エレベーター有無')->inline(false),
                             Textarea::make('note')->label('備考・特記事項')
                                 ->placeholder('例）エレベーターあり、養生必須 など')
                                 ->rows(3)->maxLength(500)->columnSpanFull(),
                         ]),
-                ])->columnSpan(1),
+                ])->columnSpan(1)->extraAttributes(['class' => 'b88-jobcol b88-jobcol-right']),
 
                 // ===== 全幅：金額・募集状況 =====
                 Section::make('金額・募集状況')
