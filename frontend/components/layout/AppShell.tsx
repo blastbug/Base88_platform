@@ -37,7 +37,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "案件",
     items: [
       { href: "/jobs", label: "案件一覧", match: (p) => p === "/jobs" || (p.startsWith("/jobs/") && p !== "/jobs/new"), icon: ic("M4 6h16M4 12h16M4 18h16") },
-      { href: "/jobs/new", label: "案件を投稿", match: (p) => p === "/jobs/new", icon: ic("M12 5v14M5 12h14") },
+      // 初期リリースでは加盟店からの案件投稿は無効（管理者のみ登録）。将来の追加開発で復活予定。
       { href: "/my/jobs", label: "自社案件一覧", match: (p) => p.startsWith("/my/jobs"), icon: ic("M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-3M9 3v4h6V3M9 12h6M9 16h4") },
     ],
   },

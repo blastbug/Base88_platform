@@ -8,13 +8,6 @@ import type { Job, Paginated } from "@/lib/types";
 import { Badge, Button, EmptyState, Select, Spinner } from "@/components/ui";
 import { formatDate, formatDateDow, jobCode, listJobStatus, luggageLayout, route } from "@/lib/format";
 
-const STATUS_OPTIONS: { v: string; l: string }[] = [
-  { v: "", l: "すべて" },
-  { v: "recruiting", l: "募集中" },
-  { v: "closed", l: "募集終了" },
-  { v: "contracted", l: "成約済" },
-  { v: "completed", l: "完了" },
-];
 const LAYOUT_OPTIONS = ["1LDK", "2LDK", "3LDK", "4LDK"];
 const SORT_OPTIONS: { v: string; l: string }[] = [
   { v: "new", l: "新しい順" },
@@ -22,10 +15,10 @@ const SORT_OPTIONS: { v: string; l: string }[] = [
   { v: "moving_asc", l: "引越日が近い順" },
   { v: "moving_desc", l: "引越日が遠い順" },
   { v: "deadline", l: "締切が近い順" },
-  { v: "applications", l: "応募が多い順" },
 ];
 
-const EMPTY = { keyword: "", dateFrom: "", dateTo: "", layout: "", status: "" };
+// 加盟店の案件一覧は「募集中」のみ表示するため、募集状況フィルタは廃止。
+const EMPTY = { keyword: "", dateFrom: "", dateTo: "", layout: "" };
 
 export default function JobsPage() {
   const router = useRouter();
@@ -47,7 +40,6 @@ export default function JobsPage() {
     if (f.dateFrom) q.set("date_from", f.dateFrom);
     if (f.dateTo) q.set("date_to", f.dateTo);
     if (f.layout) q.set("layout", f.layout);
-    if (f.status) q.set("status", f.status);
     if (s) q.set("sort", s);
     q.set("page", String(p));
     return q.toString();
@@ -83,7 +75,7 @@ export default function JobsPage() {
         const res = await api<Paginated<Job>>(`/jobs?${buildParams(p, filters, sort)}`);
         all.push(...res.data);
       }
-      const header = ["案件ID", "引越予定日", "出発地", "到着地", "荷物量/間取り", "募集状況", "締切日", "応募数"];
+      const header = ["案件ID", "引越予定日", "出発地", "到着地", "荷物量/間取り", "募集状況", "締切日"];
       const rows = all.map((j) => [
         jobCode(j.id, j.moving_date),
         formatDate(j.moving_date),
@@ -92,7 +84,6 @@ export default function JobsPage() {
         luggageLayout(j.layout, j.luggage_volume),
         listJobStatus(j.status, j.application_deadline).label,
         formatDate(j.application_deadline),
-        `${j.applications_count ?? 0}社`,
       ]);
       const csv = [header, ...rows].map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\r\n");
       const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
@@ -143,11 +134,6 @@ export default function JobsPage() {
               {LAYOUT_OPTIONS.map((l) => <option key={l} value={l}>{l}</option>)}
             </Select>
           </Field>
-          <Field label="募集状況">
-            <Select value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value })}>
-              {STATUS_OPTIONS.map((s) => <option key={s.v} value={s.v}>{s.l}</option>)}
-            </Select>
-          </Field>
           <Field label="並び順">
             <Select value={sort} onChange={(e) => changeSort(e.target.value)}>
               {SORT_OPTIONS.map((s) => <option key={s.v} value={s.v}>{s.l}</option>)}
@@ -196,7 +182,6 @@ export default function JobsPage() {
                     <th>荷物量 / 間取り</th>
                     <th>募集状況</th>
                     <th>締切日</th>
-                    <th className="text-center">応募数</th>
                     <th className="text-right">操作</th>
                   </tr>
                 </thead>
@@ -213,7 +198,6 @@ export default function JobsPage() {
                         <td className="text-ink-600">{luggageLayout(job.layout, job.luggage_volume)}</td>
                         <td><Badge tone={st.tone}>{st.label}</Badge></td>
                         <td className="whitespace-nowrap text-ink-600">{formatDate(job.application_deadline)}</td>
-                        <td className="text-center font-medium text-ink-700">{job.applications_count ?? 0} 社</td>
                         <td>
                           <div className="flex items-center justify-end gap-1.5">
                             <Button size="sm" variant="secondary" onClick={() => router.push(`/jobs/${job.id}`)}>詳細</Button>
@@ -250,15 +234,9 @@ export default function JobsPage() {
                           <Ic className="h-4 w-4 shrink-0 text-ink-400"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0z" /><circle cx="12" cy="10" r="3" /></Ic>
                           <span className="min-w-0 truncate">{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</span>
                         </div>
-                        <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-ink-600">
-                          <span className="flex items-center gap-2">
-                            <Ic className="h-4 w-4 shrink-0 text-ink-400"><path d="m7.5 4.3 9 5.2M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><path d="m3.3 7 8.7 5 8.7-5M12 22V12" /></Ic>
-                            {luggageLayout(job.layout, job.luggage_volume)}
-                          </span>
-                          <span className="flex items-center gap-2">
-                            <Ic className="h-4 w-4 shrink-0 text-ink-400"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></Ic>
-                            {job.applications_count ?? 0}社
-                          </span>
+                        <div className="flex items-center gap-2 text-sm text-ink-600">
+                          <Ic className="h-4 w-4 shrink-0 text-ink-400"><path d="m7.5 4.3 9 5.2M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><path d="m3.3 7 8.7 5 8.7-5M12 22V12" /></Ic>
+                          {luggageLayout(job.layout, job.luggage_volume)}
                         </div>
                       </div>
                       <Ic className="h-5 w-5 shrink-0 text-ink-300"><path d="m9 18 6-6-6-6" /></Ic>

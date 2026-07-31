@@ -32,6 +32,28 @@ export default function NewJobPage() {
   function set<K extends keyof typeof form>(k: K, v: string) { setForm((f) => ({ ...f, [k]: v })); }
   const err = (k: string) => errors[k]?.[0];
 
+  // 初期リリースでは加盟店からの案件投稿は無効（管理者のみ登録）。将来の追加開発で有効化予定。
+  const POSTING_ENABLED = false;
+  if (!POSTING_ENABLED) {
+    return (
+      <div className="animate-fade-in mx-auto max-w-lg py-6">
+        <div className="card p-8 text-center sm:p-10">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-ink-100 text-ink-400">
+            <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </div>
+          <h2 className="text-lg font-bold text-ink-900">この機能は現在ご利用いただけません</h2>
+          <p className="mt-2 text-sm leading-relaxed text-ink-500">
+            案件の登録は管理者が行います。<br />
+            募集中の案件は「案件一覧」からご確認・ご応募いただけます。
+          </p>
+          <div className="mt-6">
+            <Button onClick={() => router.push("/jobs")}>案件一覧を見る</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const ACCEPT = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
   function addFiles(list: FileList | File[]) {
     setFileError(null);

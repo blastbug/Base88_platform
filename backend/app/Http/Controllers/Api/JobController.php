@@ -58,21 +58,14 @@ class JobController extends Controller
         if ($to = $request->query('date_to')) {
             $query->whereDate('moving_date', '<=', $to);
         }
-        // 公開一覧には成約済み・完了も「成約済み」と分かる形で掲載する（マーケットの透明性）。
-        // ただしキャンセル案件のみは公開一覧に出さない。顧客個人情報は別テーブルで
-        // 成約会社・掲載会社のみに限定（本メソッドでは一切含めない）。
-        $public = [
-            MovingJob::STATUS_RECRUITING,
-            MovingJob::STATUS_CLOSED,
-            MovingJob::STATUS_CONTRACTED,
-            MovingJob::STATUS_COMPLETED,
-        ];
-        $status = $request->query('status');
-        if ($status && in_array($status, $public, true)) {
-            $query->where('status', $status);
-        } else {
-            $query->whereIn('status', $public);
-        }
+        // 加盟店向けの案件一覧は「募集中」のみ表示（先着順）。
+        // 他社が受注済みの案件・募集終了・完了・キャンセルは表示しない。
+        // 締切を過ぎた案件（＝実質募集終了）も一覧には出さない。
+        $query->where('status', MovingJob::STATUS_RECRUITING)
+            ->where(function ($q) {
+                $q->whereNull('application_deadline')
+                    ->orWhere('application_deadline', '>=', now());
+            });
 
         // 並び順
         match ($request->query('sort', 'new')) {
@@ -109,10 +102,9 @@ class JobController extends Controller
             && JobContract::where('moving_job_id', $job->id)
                 ->where('winning_company_id', $companyId)->exists();
 
-        // 成約済み・完了は会員なら閲覧可（一覧に「成約済み」と表示するため）。
-        // 顧客個人情報は下の canViewCustomer で成約会社・掲載会社のみに限定。
-        // キャンセル案件だけは掲載会社以外に見せない（公開一覧にも出さない案件）。
-        if ($job->status === MovingJob::STATUS_CANCELLED && ! $isOwner) {
+        // 加盟店は「募集中」の案件のみ閲覧可。他社が受注済み等の案件は閲覧不可。
+        // （掲載会社＝owner、成約会社＝winner は自社の案件として引き続き閲覧可）
+        if ($job->status !== MovingJob::STATUS_RECRUITING && ! $isOwner && ! $isWinner) {
             abort(403, 'この案件は現在閲覧できません。');
         }
 
@@ -130,9 +122,13 @@ class JobController extends Controller
         return (new MovingJobResource($job))->response();
     }
 
-    /** 案件投稿（発注）。顧客情報は別テーブルに保存し、公開されない。 */
+    /** 案件投稿（発注）。顧客情報は別テーブルに保存し、公開されない。
+     *  ※初期リリースでは加盟店からの投稿は無効（管理者のみ登録）。将来の追加開発で有効化予定。 */
     public function store(Request $request): JsonResponse
     {
+        // 初期リリースでは加盟店からの案件投稿は受け付けない（管理者のみが案件登録）。
+        abort(403, '加盟店からの案件投稿は現在ご利用いただけません。案件は管理者が登録します。');
+
         $user = $request->user();
 
         $data = $request->validate([
