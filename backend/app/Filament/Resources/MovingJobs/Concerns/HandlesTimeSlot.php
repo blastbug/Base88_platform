@@ -13,12 +13,14 @@ trait HandlesTimeSlot
     protected function composeTimeSlot(array $data): array
     {
         $parts = [];
-        if (! empty($data['t_am'])) {
-            $parts[] = '午前';
+
+        // 時間区分（午前 / 午後 / フリー便）はラジオの単一選択
+        $period = $data['t_period'] ?? '';
+        if (in_array($period, ['午前', '午後', 'フリー便'], true)) {
+            $parts[] = $period;
         }
-        if (! empty($data['t_pm'])) {
-            $parts[] = '午後';
-        }
+
+        // 時間帯（開始〜終了）はチェック時のみ
         if (! empty($data['t_range'])) {
             $from = $this->toHm($data['t_from'] ?? null);
             $to = $this->toHm($data['t_to'] ?? null);
@@ -26,13 +28,10 @@ trait HandlesTimeSlot
                 $parts[] = $from . '〜' . $to;
             }
         }
-        if (! empty($data['t_freebin'])) {
-            $parts[] = 'フリー便';
-        }
 
         $data['time_slot'] = $parts ? implode('・', $parts) : null;
 
-        unset($data['t_am'], $data['t_pm'], $data['t_range'], $data['t_from'], $data['t_to'], $data['t_freebin']);
+        unset($data['t_period'], $data['t_range'], $data['t_from'], $data['t_to']);
 
         return $data;
     }
@@ -42,9 +41,15 @@ trait HandlesTimeSlot
     {
         $slot = (string) ($data['time_slot'] ?? '');
 
-        $data['t_am'] = str_contains($slot, '午前');
-        $data['t_pm'] = str_contains($slot, '午後');
-        $data['t_freebin'] = str_contains($slot, 'フリー便');
+        if (str_contains($slot, '午前')) {
+            $data['t_period'] = '午前';
+        } elseif (str_contains($slot, '午後')) {
+            $data['t_period'] = '午後';
+        } elseif (str_contains($slot, 'フリー便')) {
+            $data['t_period'] = 'フリー便';
+        } else {
+            $data['t_period'] = '';
+        }
 
         if (preg_match('/(\d{1,2}:\d{2})\s*[〜~\-]\s*(\d{1,2}:\d{2})/u', $slot, $m)) {
             $data['t_range'] = true;

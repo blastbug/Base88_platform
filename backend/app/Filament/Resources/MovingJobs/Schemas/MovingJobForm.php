@@ -6,6 +6,7 @@ use App\Models\MovingJob;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
@@ -38,21 +39,30 @@ class MovingJobForm
                         DateTimePicker::make('application_deadline')->label('応募締切')->native(false)->required(),
 
                         Fieldset::make('引越予定時間')
-                            ->columns(4)
+                            ->columns(2)
                             ->columnSpanFull()
                             ->schema([
-                                Checkbox::make('t_am')->label('午前'),
-                                Checkbox::make('t_pm')->label('午後'),
-                                Checkbox::make('t_freebin')->label('フリー便'),
-                                Checkbox::make('t_range')->label('時間帯を指定する')->live(),
+                                Radio::make('t_period')->label('時間区分')
+                                    ->options([
+                                        '' => '指定なし',
+                                        '午前' => '午前',
+                                        '午後' => '午後',
+                                        'フリー便' => 'フリー便',
+                                    ])
+                                    ->default('')->inline()->inlineLabel(false)->columnSpanFull(),
+                                Checkbox::make('t_range')->label('時間帯を指定する')
+                                    ->helperText('チェックすると開始・終了時刻を入力できます。')
+                                    ->live()->columnSpanFull(),
                                 TimePicker::make('t_from')->label('開始時刻')
                                     ->seconds(false)->native(false)->format('H:i')->displayFormat('H:i')
-                                    ->visible(fn (Get $get): bool => (bool) $get('t_range'))
-                                    ->required(fn (Get $get): bool => (bool) $get('t_range')),
+                                    ->disabled(fn (Get $get): bool => ! $get('t_range'))
+                                    ->required(fn (Get $get): bool => (bool) $get('t_range'))
+                                    ->dehydrated(),
                                 TimePicker::make('t_to')->label('終了時刻')
                                     ->seconds(false)->native(false)->format('H:i')->displayFormat('H:i')
-                                    ->visible(fn (Get $get): bool => (bool) $get('t_range'))
-                                    ->required(fn (Get $get): bool => (bool) $get('t_range')),
+                                    ->disabled(fn (Get $get): bool => ! $get('t_range'))
+                                    ->required(fn (Get $get): bool => (bool) $get('t_range'))
+                                    ->dehydrated(),
                             ]),
                     ]),
 
