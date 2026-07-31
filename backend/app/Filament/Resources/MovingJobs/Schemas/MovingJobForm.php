@@ -22,10 +22,20 @@ class MovingJobForm
                     ->icon('heroicon-o-calendar-days')
                     ->columns(2)
                     ->schema([
+                        TextInput::make('job_code')->label('案件ID')
+                            ->placeholder('空欄の場合は自動発行（例: T-2026-0815-001）')
+                            ->helperText('管理者が任意の番号を入力できます。重複する番号は登録できません。空欄なら自動発行されます。')
+                            ->maxLength(50)
+                            ->unique(ignoreRecord: true)
+                            ->columnSpanFull(),
                         Select::make('company_id')->label('掲載会社')
                             ->relationship('company', 'name')->searchable()->preload()->required(),
                         DatePicker::make('moving_date')->label('引越予定日')->native(false)->required(),
-                        TextInput::make('time_slot')->label('時間帯')->placeholder('午前 / 午後 など'),
+                        TextInput::make('time_slot')->label('引越予定時間')
+                            ->placeholder('午前指定 / 午後指定 / フリー便 / 14:00〜16:00 など')
+                            ->helperText('区分の選択、または具体的な時間帯を自由に入力できます。')
+                            ->datalist(['午前指定', '午後指定', '時間帯指定', 'フリー便', '指定なし'])
+                            ->maxLength(50),
                         DateTimePicker::make('application_deadline')->label('応募締切')->native(false)->required(),
                     ]),
 

@@ -139,7 +139,7 @@ export default function NewJobPage() {
                 <Field label="引越予定日" required error={err("moving_date")}>
                   <input type="date" className="input-base" value={form.moving_date} onChange={(e) => set("moving_date", e.target.value)} />
                 </Field>
-                <Field label="時間帯" error={err("time_slot")}>
+                <Field label="引越予定時間" error={err("time_slot")}>
                   <Select value={form.time_slot} onChange={(e) => set("time_slot", e.target.value)}>
                     <option value="">指定なし</option>
                     {TIME_SLOTS.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -283,7 +283,7 @@ export default function NewJobPage() {
             <div className="space-y-6">
               <ConfirmBlock title="案件情報">
                 <ConfirmRow label="引越予定日" value={formatDate(form.moving_date)} />
-                <ConfirmRow label="時間帯" value={form.time_slot || "指定なし"} />
+                <ConfirmRow label="引越予定時間" value={form.time_slot || "指定なし"} />
                 <ConfirmRow label="出発地" value={`${form.from_prefecture} ${form.from_city}`} />
                 <ConfirmRow label="到着地" value={`${form.to_prefecture} ${form.to_city}`} />
                 <ConfirmRow label="建物種別" value={form.building_type} />

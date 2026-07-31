@@ -53,16 +53,16 @@ class DemoSeeder extends Seeder
         }
 
         $samples = [
-            ['from' => ['東京都', '世田谷区'], 'to' => ['神奈川県', '横浜市'], 'building' => 'マンション', 'layout' => '2LDK', 'vol' => '2tトラック1台程度', 'truck' => '2トンショート', 'workers' => 2, 'price' => 45000, 'slot' => '午前'],
-            ['from' => ['大阪府', '吹田市'], 'to' => ['大阪府', '堺市'], 'building' => 'アパート', 'layout' => '1K', 'vol' => '軽トラ1台程度', 'truck' => '軽トラック', 'workers' => 1, 'price' => 18000, 'slot' => '午後'],
-            ['from' => ['愛知県', '名古屋市'], 'to' => ['岐阜県', '岐阜市'], 'building' => '戸建て', 'layout' => '3LDK', 'vol' => '4tトラック1台', 'truck' => '4トン', 'workers' => 4, 'price' => 98000, 'slot' => '終日'],
-            ['from' => ['神奈川県', '川崎市'], 'to' => ['東京都', '大田区'], 'building' => 'マンション', 'layout' => '1LDK', 'vol' => '2tショート', 'truck' => '2トンショート', 'workers' => 2, 'price' => 38000, 'slot' => '午前'],
-            ['from' => ['東京都', '練馬区'], 'to' => ['埼玉県', 'さいたま市'], 'building' => 'アパート', 'layout' => '2DK', 'vol' => '2tロング', 'truck' => '2トンロング', 'workers' => 3, 'price' => 52000, 'slot' => '午後'],
-            ['from' => ['大阪府', '豊中市'], 'to' => ['兵庫県', '西宮市'], 'building' => 'マンション', 'layout' => '2LDK', 'vol' => '3tトラック', 'truck' => '3トン', 'workers' => 3, 'price' => 62000, 'slot' => '午前'],
-            ['from' => ['福岡県', '福岡市'], 'to' => ['福岡県', '北九州市'], 'building' => '戸建て', 'layout' => '4LDK', 'vol' => '4t2台', 'truck' => '4トン', 'workers' => 4, 'price' => 135000, 'slot' => '終日'],
-            ['from' => ['北海道', '札幌市'], 'to' => ['北海道', '旭川市'], 'building' => 'マンション', 'layout' => '1K', 'vol' => '1tトラック', 'truck' => '1トン', 'workers' => 2, 'price' => 42000, 'slot' => '午前'],
-            ['from' => ['東京都', '江東区'], 'to' => ['千葉県', '船橋市'], 'building' => 'タワーマンション', 'layout' => '3LDK', 'vol' => '4tトラック', 'truck' => '4トン', 'workers' => 4, 'price' => 110000, 'slot' => '午後'],
-            ['from' => ['京都府', '京都市'], 'to' => ['滋賀県', '大津市'], 'building' => 'アパート', 'layout' => '1DK', 'vol' => '軽トラ2台', 'truck' => '軽トラック', 'workers' => 2, 'price' => 26000, 'slot' => '午前'],
+            ['from' => ['東京都', '世田谷区'], 'to' => ['神奈川県', '横浜市'], 'building' => 'マンション', 'layout' => '2LDK', 'vol' => '2tトラック1台程度', 'truck' => '2トンショート', 'workers' => 2, 'price' => 45000, 'slot' => '午前指定'],
+            ['from' => ['大阪府', '吹田市'], 'to' => ['大阪府', '堺市'], 'building' => 'アパート', 'layout' => '1K', 'vol' => '軽トラ1台程度', 'truck' => '軽トラック', 'workers' => 1, 'price' => 18000, 'slot' => '午後指定'],
+            ['from' => ['愛知県', '名古屋市'], 'to' => ['岐阜県', '岐阜市'], 'building' => '戸建て', 'layout' => '3LDK', 'vol' => '4tトラック1台', 'truck' => '4トン', 'workers' => 4, 'price' => 98000, 'slot' => 'フリー便'],
+            ['from' => ['神奈川県', '川崎市'], 'to' => ['東京都', '大田区'], 'building' => 'マンション', 'layout' => '1LDK', 'vol' => '2tショート', 'truck' => '2トンショート', 'workers' => 2, 'price' => 38000, 'slot' => '午前指定'],
+            ['from' => ['東京都', '練馬区'], 'to' => ['埼玉県', 'さいたま市'], 'building' => 'アパート', 'layout' => '2DK', 'vol' => '2tロング', 'truck' => '2トンロング', 'workers' => 3, 'price' => 52000, 'slot' => '13:00〜15:00'],
+            ['from' => ['大阪府', '豊中市'], 'to' => ['兵庫県', '西宮市'], 'building' => 'マンション', 'layout' => '2LDK', 'vol' => '3tトラック', 'truck' => '3トン', 'workers' => 3, 'price' => 62000, 'slot' => '午前指定'],
+            ['from' => ['福岡県', '福岡市'], 'to' => ['福岡県', '北九州市'], 'building' => '戸建て', 'layout' => '4LDK', 'vol' => '4t2台', 'truck' => '4トン', 'workers' => 4, 'price' => 135000, 'slot' => 'フリー便'],
+            ['from' => ['北海道', '札幌市'], 'to' => ['北海道', '旭川市'], 'building' => 'マンション', 'layout' => '1K', 'vol' => '1tトラック', 'truck' => '1トン', 'workers' => 2, 'price' => 42000, 'slot' => '午前指定'],
+            ['from' => ['東京都', '江東区'], 'to' => ['千葉県', '船橋市'], 'building' => 'タワーマンション', 'layout' => '3LDK', 'vol' => '4tトラック', 'truck' => '4トン', 'workers' => 4, 'price' => 110000, 'slot' => '午後指定'],
+            ['from' => ['京都府', '京都市'], 'to' => ['滋賀県', '大津市'], 'building' => 'アパート', 'layout' => '1DK', 'vol' => '軽トラ2台', 'truck' => '軽トラック', 'workers' => 2, 'price' => 26000, 'slot' => '10:00〜12:00'],
         ];
 
         foreach ($samples as $i => $s) {
@@ -125,7 +125,7 @@ class DemoSeeder extends Seeder
                 'moving_date' => Carbon::today()->addDays(10),
             ],
             [
-                'time_slot' => '午前',
+                'time_slot' => '午前指定',
                 'from_city' => '港区',
                 'to_city' => '船橋市',
                 'building_type' => 'マンション',

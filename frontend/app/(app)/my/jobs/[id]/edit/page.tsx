@@ -137,7 +137,7 @@ export default function EditJobPage() {
             <Field label="引越予定日" required error={err("moving_date")}>
               <input type="date" className="input-base" value={form.moving_date} onChange={set("moving_date")} />
             </Field>
-            <Field label="時間帯" error={err("time_slot")}>
+            <Field label="引越予定時間" error={err("time_slot")}>
               <Select value={form.time_slot} onChange={set("time_slot")}>
                 <option value="">指定なし</option>
                 {TIME_SLOTS.map((t) => <option key={t} value={t}>{t}</option>)}

@@ -26,6 +26,7 @@ class MovingJob extends Model implements HasMedia
 
     protected $fillable = [
         'company_id',
+        'job_code',
         'moving_date',
         'time_slot',
         'from_prefecture',
@@ -54,6 +55,30 @@ class MovingJob extends Model implements HasMedia
             'desired_price' => 'integer',
             'worker_count' => 'integer',
         ];
+    }
+
+    /**
+     * 案件ID（job_code）が未設定なら作成後に自動発行する。
+     * 管理者がフォームで任意の番号を入力した場合はそれを尊重する。
+     */
+    protected static function booted(): void
+    {
+        static::created(function (MovingJob $job): void {
+            if (blank($job->job_code)) {
+                $job->job_code = $job->generateJobCode();
+                $job->saveQuietly();
+            }
+        });
+    }
+
+    /** 従来の表示コード形式（例: T-2026-0815-001）で自動発行 */
+    public function generateJobCode(): string
+    {
+        $datePart = $this->moving_date
+            ? $this->moving_date->format('Y-md')
+            : now()->format('Y-md');
+
+        return sprintf('T-%s-%03d', $datePart, $this->id);
     }
 
     /** 掲載（発注）会社 */

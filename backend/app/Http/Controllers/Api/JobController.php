@@ -36,7 +36,8 @@ class JobController extends Controller
         // キーワード（出発地・到着地・案件ID）
         if ($kw = trim((string) $request->query('keyword'))) {
             $query->where(function ($q) use ($kw) {
-                $q->where('from_prefecture', 'like', "%{$kw}%")
+                $q->where('job_code', 'like', "%{$kw}%")
+                    ->orWhere('from_prefecture', 'like', "%{$kw}%")
                     ->orWhere('from_city', 'like', "%{$kw}%")
                     ->orWhere('to_prefecture', 'like', "%{$kw}%")
                     ->orWhere('to_city', 'like', "%{$kw}%");

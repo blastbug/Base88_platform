@@ -20,6 +20,7 @@ class MovingJobResource extends JsonResource
 
         return [
             'id' => $this->id,
+            'job_code' => $this->job_code,
             'status' => $this->status,
             'company' => $this->whenLoaded('company', fn () => [
                 'id' => $this->company->id,

@@ -32,6 +32,7 @@ export interface CustomerInfo {
 
 export interface Job {
   id: number;
+  job_code: string | null;
   status: JobStatus;
   company?: CompanyBrief;
   is_owner: boolean;

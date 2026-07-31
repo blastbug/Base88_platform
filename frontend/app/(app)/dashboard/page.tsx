@@ -216,7 +216,7 @@ function NewJobsTable({ jobs, router }: { jobs: Job[]; router: Nav }) {
               <button onClick={() => router.push(`/jobs/${job.id}`)} className="flex w-full items-center gap-2 px-4 py-4 text-left transition-colors hover:bg-ink-50">
                 <div className="min-w-0 flex-1 space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="whitespace-nowrap font-mono text-sm font-bold text-brand-600">{jobCode(job.id, job.moving_date)}</span>
+                    <span className="whitespace-nowrap font-mono text-sm font-bold text-brand-600">{jobCode(job.id, job.moving_date, job.job_code)}</span>
                     <span className="flex shrink-0 items-center gap-2 whitespace-nowrap">
                       <StatusPill tone={st.tone} label={st.label} />
                       <span className="text-xs text-ink-400">締切 {shortDate(job.application_deadline)}</span>
@@ -225,6 +225,7 @@ function NewJobsTable({ jobs, router }: { jobs: Job[]; router: Nav }) {
                   <div className="flex items-center gap-2 text-sm text-ink-700">
                     <Ic d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" className="h-4 w-4 shrink-0 text-ink-400" />
                     {dateDow(job.moving_date)}
+                    {job.time_slot && <span className="text-ink-400">・{job.time_slot}</span>}
                   </div>
                   <div className="flex items-center gap-2 text-sm text-ink-700">
                     <Svg className="h-4 w-4 shrink-0 text-ink-400"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0z" /><circle cx="12" cy="10" r="3" /></Svg>

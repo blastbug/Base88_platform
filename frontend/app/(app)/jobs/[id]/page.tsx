@@ -6,7 +6,7 @@ import { api, ApiError } from "@/lib/api";
 import type { Job } from "@/lib/types";
 import { Badge, Button, EmptyState, LinkButton, Spinner, Textarea } from "@/components/ui";
 import { AttachmentManager } from "@/components/AttachmentManager";
-import { displayJobStatus, formatDate, formatDateTime, formatYen, luggageLayout, route } from "@/lib/format";
+import { displayJobStatus, formatDate, formatDateTime, formatYen, jobCode, luggageLayout, route } from "@/lib/format";
 
 export default function JobDetailPage() {
   const params = useParams<{ id: string }>();
@@ -95,6 +95,7 @@ export default function JobDetailPage() {
         {/* Header */}
         <div className="flex flex-wrap items-start justify-between gap-3 border-b border-ink-100 pb-5">
           <div>
+            <div className="mb-1 font-mono text-xs font-bold text-brand-600">{jobCode(job.id, job.moving_date, job.job_code)}</div>
             <div className="flex items-center gap-3">
               <h2 className="text-xl font-bold text-ink-900">{route(job.from_prefecture, job.from_city, job.to_prefecture, job.to_city)}</h2>
               <Badge tone={st.tone}>{st.label}</Badge>
@@ -107,7 +108,7 @@ export default function JobDetailPage() {
         <div className="grid gap-8 pt-6 lg:grid-cols-[1.6fr_1fr]">
           <dl className="divide-y divide-ink-100">
             <Row label="引越予定日" value={formatDate(job.moving_date)} />
-            <Row label="時間帯" value={job.time_slot ?? "指定なし"} />
+            <Row label="引越予定時間" value={job.time_slot ?? "指定なし"} />
             <Row label="荷物量 / 間取り" value={luggageLayout(job.layout, job.luggage_volume)} />
             <Row label="希望金額" value={<span className="text-base font-bold text-ink-900">{formatYen(job.desired_price)}</span>} />
             <Row label="建物種別" value={`${job.building_type}${job.has_elevator === null ? "" : job.has_elevator ? "（エレベーターあり）" : "（エレベーターなし）"}`} />

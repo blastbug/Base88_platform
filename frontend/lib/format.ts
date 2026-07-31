@@ -18,7 +18,7 @@ export const BUILDING_TYPES = [
   "アパート", "マンション", "タワーマンション", "戸建て", "オフィス", "その他",
 ];
 
-export const TIME_SLOTS = ["午前", "午後", "終日", "指定なし"];
+export const TIME_SLOTS = ["午前指定", "午後指定", "時間帯指定", "フリー便", "指定なし"];
 
 export const JOB_STATUS_LABEL: Record<JobStatus, string> = {
   recruiting: "募集中",
@@ -67,8 +67,12 @@ export function listJobStatus(status: JobStatus, deadlineIso?: string | null): {
   return { label: "キャンセル", tone: ROSE };
 }
 
-/** 案件表示コード（例: T-2026-0815-001）。moving_date と id から生成。 */
-export function jobCode(id: number, movingIso?: string | null): string {
+/**
+ * 案件表示コード（例: T-2026-0815-001）。
+ * 管理者が登録した案件ID（stored）があればそれを優先し、無ければ moving_date と id から生成。
+ */
+export function jobCode(id: number, movingIso?: string | null, stored?: string | null): string {
+  if (stored && stored.trim()) return stored.trim();
   const d = movingIso ? new Date(movingIso) : null;
   const datePart = d && !isNaN(d.getTime())
     ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`
