@@ -136,7 +136,7 @@ class DemoSeeder extends Seeder
                     'floors' => (string) rand(1, 10) . '階',
                     'has_elevator' => (bool) rand(0, 1),
                     'desired_price' => $s['price'],
-                    'note' => '大型家具・家電あり。エレベーターの有無をご確認ください。',
+                    'note' => '大型家具・家電あり。搬入経路・駐車スペースをご確認ください。',
                     'application_deadline' => Carbon::today()->addDays(5 + $i)->setTime(18, 0),
                     'status' => MovingJob::STATUS_RECRUITING,
                 ]

@@ -18,7 +18,7 @@ export const BUILDING_TYPES = [
   "アパート", "マンション", "タワーマンション", "戸建て", "オフィス", "その他",
 ];
 
-export const TIME_SLOTS = ["午前指定", "午後指定", "時間帯指定", "フリー便", "指定なし"];
+export const TIME_SLOTS = ["午前", "午後", "フリー便", "指定なし"];
 
 export const JOB_STATUS_LABEL: Record<JobStatus, string> = {
   recruiting: "募集中",
