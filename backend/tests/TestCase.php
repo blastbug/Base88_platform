@@ -6,11 +6,42 @@ use App\Models\Company;
 use App\Models\MovingJob;
 use App\Models\User;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 abstract class TestCase extends BaseTestCase
 {
     private static int $seq = 0;
+
+    /**
+     * 【重要・安全策】テストは必ず sqlite :memory: を使う。
+     *
+     * config をキャッシュ（config:cache）した状態でテストを実行すると、
+     * phpunit.xml の env よりキャッシュ済み設定（＝本番/開発DB）が優先され、
+     * RefreshDatabase の migrate:fresh が実DBを初期化してしまう事故が起き得る。
+     * refreshApplication は setUpTraits（RefreshDatabase の起動）より前に呼ばれる
+     * ため、ここで接続を :memory: へ強制し、万一 :memory: でなければ
+     * migrate:fresh が走る前に中断する。
+     */
+    protected function refreshApplication(): void
+    {
+        parent::refreshApplication();
+
+        config([
+            'database.default' => 'sqlite',
+            'database.connections.sqlite.database' => ':memory:',
+            'database.connections.sqlite.foreign_key_constraints' => true,
+            'app.tunnel_url' => null,
+        ]);
+        DB::purge('sqlite');
+
+        $db = config('database.connections.'.config('database.default').'.database');
+        if ($db !== ':memory:') {
+            throw new \RuntimeException(
+                'テストDBが :memory: ではありません（'.$db.'）。実DB保護のため中断しました。'
+            );
+        }
+    }
 
     private function seq(): int
     {
