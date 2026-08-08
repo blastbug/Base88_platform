@@ -72,8 +72,13 @@ class DashboardController extends Controller
     }
 
     /** 最近の活動（ドメインイベントから構築：掲載／応募受信／成約） */
-    private function recentActivities(int $companyId): array
+    private function recentActivities(?int $companyId): array
     {
+        // 会社に属さないユーザー（BASE88管理者・開発者）は加盟店の活動が無いため空を返す。
+        if ($companyId === null) {
+            return [];
+        }
+
         $routeOf = fn (MovingJob $j) => trim("{$j->from_prefecture} → {$j->to_prefecture}");
         $items = collect();
 
