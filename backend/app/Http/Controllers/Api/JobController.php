@@ -68,6 +68,16 @@ class JobController extends Controller
                     ->orWhere('application_deadline', '>=', now());
             });
 
+        // 配信方法：指名配信の案件は「指名された加盟会社・掲載会社・応募済みの会社」にのみ表示。
+        // 全体配信は全承認加盟店に表示。
+        $companyId = $user->company_id;
+        $query->where(function ($q) use ($companyId) {
+            $q->where('distribution_type', MovingJob::DISTRIBUTION_ALL)
+                ->orWhere('company_id', $companyId)
+                ->orWhereHas('targets', fn ($t) => $t->where('companies.id', $companyId))
+                ->orWhereHas('applications', fn ($a) => $a->where('company_id', $companyId));
+        });
+
         // 並び順
         match ($request->query('sort', 'new')) {
             'old' => $query->oldest('created_at'),
@@ -107,6 +117,11 @@ class JobController extends Controller
         // （掲載会社＝owner、成約会社＝winner は自社の案件として引き続き閲覧可）
         if ($job->status !== MovingJob::STATUS_RECRUITING && ! $isOwner && ! $isWinner) {
             abort(403, 'この案件は現在閲覧できません。');
+        }
+
+        // 指名配信の案件は、指名された加盟会社・掲載会社・応募済みの会社のみ閲覧可。
+        if (! $isWinner && ! $job->isVisibleToCompany($companyId)) {
+            abort(403, 'この案件は指名配信のため閲覧できません。');
         }
 
         $job->load('company', 'media')->loadCount('applications');

@@ -157,6 +157,13 @@ class DemoSeeder extends Seeder
                     );
                 }
             }
+
+            // 見本：先頭の案件を「指名配信」にし、2社のみへ配信
+            if ($i === 0) {
+                $job->update(['distribution_type' => MovingJob::DISTRIBUTION_TARGETED]);
+                $targets = collect($created)->filter(fn ($c) => $c->id !== $company->id)->take(2)->pluck('id')->all();
+                $job->targets()->sync($targets);
+            }
         }
 
         $this->seedShowcaseContract($created);

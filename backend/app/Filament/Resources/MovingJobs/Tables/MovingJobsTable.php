@@ -50,6 +50,10 @@ class MovingJobsTable
                         default => 'gray',
                     }),
                 TextColumn::make('application_deadline')->label('締切')->date('Y/m/d')->sortable(),
+                TextColumn::make('distribution_type')->label('配信')->badge()
+                    ->formatStateUsing(fn (?string $state) => MovingJob::DISTRIBUTION_LABELS[$state] ?? '全体配信')
+                    ->color(fn (?string $state) => $state === MovingJob::DISTRIBUTION_TARGETED ? 'warning' : 'gray')
+                    ->toggleable(),
             ])
             ->filters([
                 SelectFilter::make('status')->label('募集状況')->options([
@@ -58,6 +62,7 @@ class MovingJobsTable
                     MovingJob::STATUS_COMPLETED => '完了',
                     MovingJob::STATUS_CANCELLED => 'キャンセル',
                 ]),
+                SelectFilter::make('distribution_type')->label('配信方法')->options(MovingJob::DISTRIBUTION_LABELS),
             ])
             ->recordActions([
                 ViewAction::make()->label('詳細'),

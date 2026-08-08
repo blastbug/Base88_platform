@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -30,6 +31,15 @@ class MovingJob extends Model implements HasMedia
         'cash_on_site' => '当日代行集金',
     ];
 
+    /** 配信方法 */
+    public const DISTRIBUTION_ALL      = 'all';      // 全体配信
+    public const DISTRIBUTION_TARGETED = 'targeted'; // 指名配信
+
+    public const DISTRIBUTION_LABELS = [
+        self::DISTRIBUTION_ALL      => '全体配信',
+        self::DISTRIBUTION_TARGETED => '指名配信',
+    ];
+
     protected $fillable = [
         'company_id',
         'job_code',
@@ -51,6 +61,7 @@ class MovingJob extends Model implements HasMedia
         'note',
         'application_deadline',
         'status',
+        'distribution_type',
     ];
 
     protected function casts(): array
@@ -108,6 +119,29 @@ class MovingJob extends Model implements HasMedia
     public function contract(): HasOne
     {
         return $this->hasOne(JobContract::class);
+    }
+
+    /** 指名配信の配信先（加盟会社） */
+    public function targets(): BelongsToMany
+    {
+        return $this->belongsToMany(Company::class, 'moving_job_targets');
+    }
+
+    /** 指定の加盟会社にこの案件が配信されているか（全体配信は常に true） */
+    public function isVisibleToCompany(?int $companyId): bool
+    {
+        if ($this->distribution_type !== self::DISTRIBUTION_TARGETED) {
+            return true;
+        }
+        if (! $companyId) {
+            return false;
+        }
+        if ($this->company_id === $companyId) {
+            return true;
+        }
+
+        return $this->targets()->where('companies.id', $companyId)->exists()
+            || $this->applications()->where('company_id', $companyId)->exists();
     }
 
     public function isRecruiting(): bool

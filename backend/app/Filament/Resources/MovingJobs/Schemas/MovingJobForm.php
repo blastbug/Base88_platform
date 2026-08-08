@@ -11,6 +11,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class MovingJobForm
@@ -126,6 +127,25 @@ class MovingJobForm
                             ->default(MovingJob::STATUS_RECRUITING)
                             ->native(false)
                             ->required(),
+                    ]),
+
+                Section::make('配信設定')
+                    ->description('この案件をどの加盟会社へ配信するかを設定します。')
+                    ->icon('heroicon-o-megaphone')
+                    ->columns(2)
+                    ->columnSpanFull()
+                    ->schema([
+                        Select::make('distribution_type')->label('配信方法')
+                            ->options(MovingJob::DISTRIBUTION_LABELS)
+                            ->default(MovingJob::DISTRIBUTION_ALL)
+                            ->native(false)->required()->live()
+                            ->helperText('「指名配信」を選ぶと、指定した加盟会社のみに案件が表示されます。'),
+                        Select::make('targets')->label('配信先の加盟会社（指名配信）')
+                            ->relationship('targets', 'name')
+                            ->multiple()->searchable()->preload()
+                            ->visible(fn (Get $get): bool => $get('distribution_type') === MovingJob::DISTRIBUTION_TARGETED)
+                            ->required(fn (Get $get): bool => $get('distribution_type') === MovingJob::DISTRIBUTION_TARGETED)
+                            ->helperText('複数選択できます。'),
                     ]),
             ]);
     }

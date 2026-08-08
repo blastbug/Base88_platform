@@ -34,6 +34,11 @@ class ApplicationController extends Controller
             throw ValidationException::withMessages(['job' => ['この案件は募集を終了しています。']]);
         }
 
+        // 指名配信の案件は、指名された加盟会社のみ応募可
+        if (! $job->isVisibleToCompany($user->company_id)) {
+            throw ValidationException::withMessages(['job' => ['この案件は指名配信のため応募できません。']]);
+        }
+
         // 締切超過
         if ($job->application_deadline && $job->application_deadline->isPast()) {
             throw ValidationException::withMessages(['job' => ['この案件は応募締切を過ぎています。']]);
