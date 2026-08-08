@@ -50,6 +50,8 @@ export interface Job {
   floors: string | null;
   has_elevator: boolean | null;
   desired_price: number | null;
+  payment_method: string | null;
+  payment_method_label: string | null;
   note: string | null;
   application_deadline: string | null;
   applications_count?: number;

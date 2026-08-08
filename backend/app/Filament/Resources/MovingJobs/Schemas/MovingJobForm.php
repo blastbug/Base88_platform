@@ -111,6 +111,10 @@ class MovingJobForm
                     ->columnSpanFull()
                     ->schema([
                         TextInput::make('desired_price')->label('希望金額')->numeric()->prefix('¥'),
+                        Select::make('payment_method')->label('支払方法')
+                            ->options(MovingJob::PAYMENT_METHODS)
+                            ->native(false)
+                            ->placeholder('未設定'),
                         Select::make('status')->label('募集状況')
                             ->options([
                                 MovingJob::STATUS_RECRUITING => '募集中',

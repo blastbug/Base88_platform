@@ -111,6 +111,7 @@ export default function JobDetailPage() {
             <Row label="引越予定時間" value={job.time_slot ?? "指定なし"} />
             <Row label="荷物量 / 間取り" value={luggageLayout(job.layout, job.luggage_volume)} />
             <Row label="希望金額" value={<span className="text-base font-bold text-ink-900">{formatYen(job.desired_price)}</span>} />
+            {job.payment_method_label && <Row label="支払方法" value={job.payment_method_label} />}
             <Row label="建物種別" value={`${job.building_type}${job.has_elevator === null ? "" : job.has_elevator ? "（エレベーターあり）" : "（エレベーターなし）"}`} />
             {job.floors && <Row label="階数" value={job.floors} />}
             {job.worker_count && <Row label="必要人数" value={`${job.worker_count}名`} />}

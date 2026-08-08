@@ -126,6 +126,7 @@ class DemoSeeder extends Seeder
                 ],
                 [
                     'time_slot' => $s['slot'],
+                    'payment_method' => $i % 2 === 0 ? 'credit_card' : 'cash_on_site',
                     'from_city' => $s['from'][1],
                     'to_city' => $s['to'][1],
                     'building_type' => $s['building'],

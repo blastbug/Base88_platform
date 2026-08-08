@@ -41,6 +41,8 @@ class MovingJobResource extends JsonResource
             'floors' => $this->floors,
             'has_elevator' => $this->has_elevator,
             'desired_price' => $this->desired_price,
+            'payment_method' => $this->payment_method,
+            'payment_method_label' => $this->resource->paymentMethodLabel(),
             'note' => $this->note,
             'application_deadline' => optional($this->application_deadline)->toIso8601String(),
             'applications_count' => $this->when(isset($this->applications_count), $this->applications_count),

@@ -16,13 +16,24 @@ class MovingJobsTable
     {
         return $table
             ->columns([
-                TextColumn::make('moving_date')->label('引越予定日')->date('Y/m/d')->sortable(),
+                TextColumn::make('job_code')->label('案件ID')->weight('bold')->searchable()->sortable(),
                 TextColumn::make('route')->label('出発地 → 到着地')
-                    ->getStateUsing(fn (MovingJob $r) => "{$r->from_prefecture} → {$r->to_prefecture}")
-                    ->searchable(['from_prefecture', 'to_prefecture']),
-                TextColumn::make('company.name')->label('掲載会社')->searchable(),
-                TextColumn::make('desired_price')->label('希望金額')->money('JPY')->sortable(),
-                TextColumn::make('applications_count')->label('応募数')->counts('applications')->alignCenter(),
+                    ->getStateUsing(fn (MovingJob $r) => $r->routeWithCity())
+                    ->searchable(['from_prefecture', 'from_city', 'to_prefecture', 'to_city']),
+                TextColumn::make('moving_date')->label('引越予定日')->date('Y/m/d')->sortable(),
+                TextColumn::make('time_spec')->label('時間指定')->badge()
+                    ->getStateUsing(fn (MovingJob $r) => $r->hasTimeSpecified() ? '有（'.$r->time_slot.'）' : '無')
+                    ->color(fn (MovingJob $r) => $r->hasTimeSpecified() ? 'success' : 'gray'),
+                TextColumn::make('payment_method')->label('支払方法')->badge()
+                    ->getStateUsing(fn (MovingJob $r) => $r->paymentMethodLabel() ?? '—')
+                    ->color(fn (MovingJob $r) => match ($r->payment_method) {
+                        'credit_card' => 'info',
+                        'cash_on_site' => 'warning',
+                        default => 'gray',
+                    }),
+                TextColumn::make('company.name')->label('掲載会社')->searchable()->toggleable(),
+                TextColumn::make('desired_price')->label('希望金額')->money('JPY')->sortable()->toggleable(),
+                TextColumn::make('applications_count')->label('応募数')->counts('applications')->alignCenter()->toggleable(),
                 TextColumn::make('status')->label('募集状況')->badge()
                     ->formatStateUsing(fn (string $state) => match ($state) {
                         MovingJob::STATUS_RECRUITING => '募集中',

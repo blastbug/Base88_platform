@@ -24,6 +24,12 @@ class MovingJob extends Model implements HasMedia
     public const STATUS_COMPLETED  = 'completed';  // 完了
     public const STATUS_CANCELLED  = 'cancelled';  // キャンセル
 
+    /** 支払方法 */
+    public const PAYMENT_METHODS = [
+        'credit_card'  => 'クレジットカード',
+        'cash_on_site' => '当日代行集金',
+    ];
+
     protected $fillable = [
         'company_id',
         'job_code',
@@ -41,6 +47,7 @@ class MovingJob extends Model implements HasMedia
         'floors',
         'has_elevator',
         'desired_price',
+        'payment_method',
         'note',
         'application_deadline',
         'status',
@@ -106,6 +113,29 @@ class MovingJob extends Model implements HasMedia
     public function isRecruiting(): bool
     {
         return $this->status === self::STATUS_RECRUITING;
+    }
+
+    /** 支払方法の表示ラベル */
+    public function paymentMethodLabel(): ?string
+    {
+        return $this->payment_method ? (self::PAYMENT_METHODS[$this->payment_method] ?? $this->payment_method) : null;
+    }
+
+    /** 時間指定の有無（フリー便・指定なし・未設定は「無」） */
+    public function hasTimeSpecified(): bool
+    {
+        $v = trim((string) $this->time_slot);
+
+        return $v !== '' && ! in_array($v, ['フリー便', '指定なし', '終日'], true);
+    }
+
+    /** 出発地 → 到着地（市区町村まで） */
+    public function routeWithCity(): string
+    {
+        $from = $this->from_prefecture.($this->from_city ? ' '.$this->from_city : '');
+        $to = $this->to_prefecture.($this->to_city ? ' '.$this->to_city : '');
+
+        return "{$from} → {$to}";
     }
 
     /** 添付は画像・PDF のみ、1ファイル最大 10MB を許可 */
