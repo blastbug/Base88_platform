@@ -40,9 +40,9 @@ class MovingJobForm
 
     public static function configure(Schema $schema): Schema
     {
-        // フォームは2カラム。左に「掲載会社・日程（時間区分を含む）」、
-        // 右に「引越場所」と「荷物・作業条件」を縦に並べ、
-        // その下に「金額・募集状況」を全幅で配置する。
+        // フォームは2カラム。上段は左に「掲載会社・日程（時間区分を含む）」、
+        // 右に「引越場所」と「荷物・作業条件」を縦に並べる。
+        // 下段は左に「配信設定」、右に「金額・募集状況」を1行で並べ、下端を揃える。
         return $schema
             ->components([
                 // ===== 左カラム：掲載会社・日程（時間区分を内包した1ブロック） =====
@@ -105,11 +105,32 @@ class MovingJobForm
                         ]),
                 ])->columnSpan(1)->extraAttributes(['class' => 'b88-jobcol b88-jobcol-right']),
 
-                // ===== 全幅：金額・募集状況 =====
+                // ===== 下段：左「配信設定」／右「金額・募集状況」を1行で並べる（等高で下端を揃える）=====
+                Section::make('配信設定')
+                    ->description('この案件をどの加盟会社へ配信するかを設定します。')
+                    ->icon('heroicon-o-megaphone')
+                    ->columns(1)
+                    ->columnSpan(1)
+                    ->extraAttributes(['class' => 'b88-jobrow2'])
+                    ->schema([
+                        Select::make('distribution_type')->label('配信方法')
+                            ->options(MovingJob::DISTRIBUTION_LABELS)
+                            ->default(MovingJob::DISTRIBUTION_ALL)
+                            ->native(false)->required()->live()
+                            ->helperText('「指名配信」を選ぶと、指定した加盟会社のみに案件が表示されます。'),
+                        Select::make('targets')->label('配信先の加盟会社（指名配信）')
+                            ->relationship('targets', 'name')
+                            ->multiple()->searchable()->preload()
+                            ->visible(fn (Get $get): bool => $get('distribution_type') === MovingJob::DISTRIBUTION_TARGETED)
+                            ->required(fn (Get $get): bool => $get('distribution_type') === MovingJob::DISTRIBUTION_TARGETED)
+                            ->helperText('複数選択できます。'),
+                    ]),
+
                 Section::make('金額・募集状況')
                     ->icon('heroicon-o-banknotes')
                     ->columns(2)
-                    ->columnSpanFull()
+                    ->columnSpan(1)
+                    ->extraAttributes(['class' => 'b88-jobrow2'])
                     ->schema([
                         TextInput::make('desired_price')->label('希望金額')->numeric()->prefix('¥'),
                         Select::make('payment_method')->label('支払方法')
@@ -126,26 +147,8 @@ class MovingJobForm
                             ])
                             ->default(MovingJob::STATUS_RECRUITING)
                             ->native(false)
-                            ->required(),
-                    ]),
-
-                Section::make('配信設定')
-                    ->description('この案件をどの加盟会社へ配信するかを設定します。')
-                    ->icon('heroicon-o-megaphone')
-                    ->columns(2)
-                    ->columnSpanFull()
-                    ->schema([
-                        Select::make('distribution_type')->label('配信方法')
-                            ->options(MovingJob::DISTRIBUTION_LABELS)
-                            ->default(MovingJob::DISTRIBUTION_ALL)
-                            ->native(false)->required()->live()
-                            ->helperText('「指名配信」を選ぶと、指定した加盟会社のみに案件が表示されます。'),
-                        Select::make('targets')->label('配信先の加盟会社（指名配信）')
-                            ->relationship('targets', 'name')
-                            ->multiple()->searchable()->preload()
-                            ->visible(fn (Get $get): bool => $get('distribution_type') === MovingJob::DISTRIBUTION_TARGETED)
-                            ->required(fn (Get $get): bool => $get('distribution_type') === MovingJob::DISTRIBUTION_TARGETED)
-                            ->helperText('複数選択できます。'),
+                            ->required()
+                            ->columnSpanFull(),
                     ]),
             ]);
     }

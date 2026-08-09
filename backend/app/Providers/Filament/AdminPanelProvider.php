@@ -144,6 +144,10 @@ class AdminPanelProvider extends PanelProvider
                         .b88-jobcol-right > .fi-sc > .fi-grid-col:last-child > .fi-sc-component { flex: 1 1 auto; display: flex; }
                         .b88-jobsec-grow { flex: 1 1 auto; }
                         .b88-jobsec-grow > .fi-section { height: 100%; }
+                        /* 下段：配信設定（左）／金額・募集状況（右）を等高で揃え、下端を一直線にする */
+                        .fi-grid-col:has(> .fi-sc-component > .b88-jobrow2) > .fi-sc-component { height: 100%; }
+                        .b88-jobrow2 { height: 100%; }
+                        .b88-jobrow2 > .fi-section { height: 100%; }
                       }
                     </style>
                     HTML)
